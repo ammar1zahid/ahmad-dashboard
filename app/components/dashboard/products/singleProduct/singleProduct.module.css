@@ -1,0 +1,482 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.breadcrumb {
+  margin-bottom: 16px;
+}
+
+.backLink {
+  color: var(--textSoft);
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.titleSection h1 {
+  color: var(--text);
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: max-content;
+}
+
+.status.in-stock { background-color: #00b894; color: white; }
+.status.low-stock { background-color: #fdcb6e; color: #2d3436; }
+.status.out-of-stock { background-color: #e17055; color: white; }
+.status.no-price { background-color: #636e72; color: white; }
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.secondaryButton,
+.dangerButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondaryButton {
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid #2e374a;
+}
+
+.secondaryButton:hover {
+  background-color: var(--bgSoft);
+}
+
+.dangerButton {
+  background-color: #e17055;
+  color: white;
+}
+
+.dangerButton:hover {
+  background-color: #d63031;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+
+.infoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background-color: var(--bgSoft);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #2e374a;
+}
+
+.cardHeader {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid #2e374a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardHeader h3 {
+  color: var(--text);
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cardHeader p {
+  color: var(--textSoft);
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+}
+
+.categoryBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.categoryBadge.kitchen { background-color: #ffeaa7; color: #2d3436; }
+.categoryBadge.phone { background-color: #a29bfe; color: white; }
+.categoryBadge.computer { background-color: #74b9ff; color: white; }
+.categoryBadge.general { background-color: #636e72; color: white; }
+
+.cardContent {
+  padding: 24px;
+}
+
+.productPlaceholder {
+  text-align: center;
+  padding: 40px;
+  background-color: var(--bg);
+  border-radius: 8px;
+  border: 2px dashed #2e374a;
+  margin-bottom: 20px;
+}
+
+.placeholderIcon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.productPlaceholder p {
+  color: var(--textSoft);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabel {
+  color: var(--textSoft);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.detailValue {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.financialGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.financialItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background-color: var(--bg);
+  border-radius: 8px;
+}
+
+.financialLabel {
+  color: var(--textSoft);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.financialValue {
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profit {
+  color: #00b894 !important;
+}
+
+.loss {
+  color: #e17055 !important;
+}
+
+.inventoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.inventoryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--bg);
+  border-radius: 8px;
+}
+
+.inventoryNumber {
+  color: var(--text);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.inventoryNumber.total {
+  color: teal;
+}
+
+.inventoryLabel {
+  color: var(--textSoft);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formSection h4 {
+  color: var(--text);
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2e374a;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.required {
+  color: #e17055;
+  margin-left: 2px;
+}
+
+.form input,
+.form textarea,
+.form select {
+  padding: 12px 16px;
+  border: 2px solid #2e374a;
+  border-radius: 6px;
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  outline: none;
+  border-color: teal;
+  box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.1);
+}
+
+.readOnly {
+  background-color: var(--bgSoft) !important;
+  color: var(--textSoft) !important;
+  cursor: not-allowed;
+}
+
+.formGroup small {
+  color: var(--textSoft);
+  font-size: 0.75rem;
+  margin-top: -2px;
+}
+
+.formActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.cancelButton,
+.updateButton {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: var(--textSoft);
+  border: 2px solid #2e374a;
+}
+
+.cancelButton:hover {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.updateButton {
+  background-color: teal;
+  color: white;
+}
+
+.updateButton:hover {
+  background-color: #006666;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .infoContainer {
+    order: 2;
+  }
+  
+  .formContainer {
+    order: 1;
+  }
+  
+  .financialGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .inventoryGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .titleSection h1 {
+    font-size: 1.5rem;
+  }
+  
+  .actions {
+    width: 100%;
+  }
+  
+  .secondaryButton,
+  .dangerButton {
+    flex: 1;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .inventoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .cardContent {
+    padding: 16px;
+  }
+  
+  .cardHeader {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .formActions {
+    flex-direction: column;
+  }
+  
+  .inventoryGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .inventoryItem {
+    padding: 16px;
+  }
+  
+  .inventoryNumber {
+    font-size: 1.5rem;
+  }
+}
