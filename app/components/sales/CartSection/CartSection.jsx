@@ -3,6 +3,9 @@
 import React, { useState } from 'react';
 import './CartSection.css';
 
+const formatPKR = (amount) =>
+  new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(Number(amount || 0));
+
 const CartSection = ({
   cart,
   selectedCustomer,
@@ -11,24 +14,124 @@ const CartSection = ({
   updateQuantity,
   removeFromCart,
   clearCart,
-  calculateSubtotal,
-  calculateTax,
-  calculateTotal,
-  calculateChange,
+
   processSale
 }) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [amountPaid, setAmountPaid] = useState('');
+  // Track sale prices for each cart item
+  const [salePrices, setSalePrices] = useState({});
 
-  const handlePaymentSubmit = () => {
-    processSale(paymentMethod, amountPaid);
-    setAmountPaid('');
+  // Update sale price for an item
+  const updateSalePrice = (itemId, salePrice) => {
+    const price = parseFloat(salePrice) || 0;
+    setSalePrices(prev => ({
+      ...prev,
+      [itemId]: price
+    }));
   };
 
-  const subtotal = calculateSubtotal();
-  const tax = calculateTax(subtotal);
-  const total = calculateTotal();
-  const change = paymentMethod === 'cash' ? calculateChange(amountPaid) : 0;
+  // Get sale price for an item (fallback to itemPrice if not set)
+  const getSalePrice = (item) => {
+    return salePrices[item.id] || item.itemPrice || 0;
+  };
+
+  // Calculate unit price (units * itemsPerUnit * itemPrice)
+  const calculateUnitPrice = (item) => {
+  
+    const itemsPerUnit = Number(item.itemsPerUnit) || 0;
+    const itemPrice = Number(item.itemPrice) || 0;
+    return itemsPerUnit * itemPrice;
+  };
+
+  // Override the calculation functions to use sale prices
+  const calculateSubtotalWithSalePrices = () => {
+    return cart.reduce((sum, item) => {
+      const salePrice = getSalePrice(item);
+      return sum + (salePrice * item.quantity);
+    }, 0);
+  };
+
+  const calculateTaxWithSalePrices = (subtotal) => {
+    return subtotal * 0.08; // 8% tax rate
+  };
+
+  const calculateTotalWithSalePrices = () => {
+    const subtotal = calculateSubtotalWithSalePrices();
+    const tax = calculateTaxWithSalePrices(subtotal);
+    return subtotal + tax;
+  };
+
+  const calculateChangeWithSalePrices = (amountPaid) => {
+    const total = calculateTotalWithSalePrices();
+    const paid = parseFloat(amountPaid) || 0;
+    return Math.max(0, paid - total);
+  };
+
+  const handlePaymentSubmit = () => {
+    // Create cart with sale prices for processing
+    const cartWithSalePrices = cart.map(item => ({
+      ...item,
+      salePrice: getSalePrice(item),
+      // Keep original price info for internal tracking
+      originalItemPrice: item.itemPrice,
+      originalPurchasePrice: item.purchasePrice
+    }));
+    
+    // Override the processSale to use our calculations
+    processSaleWithCustomPrices(paymentMethod, amountPaid, cartWithSalePrices);
+    setAmountPaid('');
+    setSalePrices({});
+  };
+
+  const processSaleWithCustomPrices = (paymentMethod, amountPaid, cartWithSalePrices) => {
+    if (cartWithSalePrices.length === 0) {
+      alert('Cart is empty!');
+      return;
+    }
+
+    const subtotal = calculateSubtotalWithSalePrices();
+    const tax = calculateTaxWithSalePrices(subtotal);
+    const total = subtotal + tax;
+    const paid = parseFloat(amountPaid) || 0;
+
+    if (paymentMethod === 'cash' && paid < total) {
+      alert('Insufficient payment amount!');
+      return;
+    }
+
+    const transaction = {
+      id: Date.now(),
+      timestamp: new Date().toLocaleString(),
+      items: cartWithSalePrices.map(item => ({
+        ...item,
+        price: getSalePrice(item), // Use sale price as the transaction price
+        salePrice: getSalePrice(item)
+      })),
+      subtotal: subtotal,
+      tax: tax,
+      total: total,
+      paymentMethod: paymentMethod,
+      amountPaid: paymentMethod === 'cash' ? paid : total,
+      change: paymentMethod === 'cash' ? calculateChangeWithSalePrices(amountPaid) : 0,
+      customer: selectedCustomer || undefined
+    };
+
+    // Call the parent's processSale but with our custom transaction
+    processSale(paymentMethod, amountPaid, transaction);
+  };
+
+  const subtotal = Number(calculateSubtotalWithSalePrices() || 0);
+  const tax = Number(calculateTaxWithSalePrices(subtotal) || 0);
+  const total = Number(calculateTotalWithSalePrices() || 0);
+  const change = paymentMethod === 'cash' ? Number(calculateChangeWithSalePrices(amountPaid) || 0) : 0;
+
+  // derived: is cash payment sufficient?
+  const isCashSufficient = () => {
+    if (paymentMethod !== 'cash') return true;
+    const paid = parseFloat(amountPaid) || 0;
+    return paid >= total;
+  };
 
   return (
     <div className="cart-section">
@@ -43,7 +146,7 @@ const CartSection = ({
             Shopping Cart ({cart.length})
           </h2>
           {cart.length > 0 && (
-            <button className="cart-clear-btn" onClick={clearCart}>
+            <button className="cart-clear-btn" onClick={clearCart} type="button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="3,6 5,6 21,6"/>
                 <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
@@ -70,36 +173,68 @@ const CartSection = ({
           ) : (
             cart.map(item => (
               <div key={item.id} className="cart-item">
-                <div className="cart-item-info">
-                  <h6 className="cart-item-name">{item.name}</h6>
-                  <p className="cart-item-price">${item.price.toFixed(2)} each</p>
-                </div>
-                <div className="cart-item-controls">
-                  <div className="cart-quantity-controls">
+                <div className="cart-item-details">
+                  <div className="cart-item-info">
+                    <h6 className="cart-item-name">{item.title ?? item.name}</h6>
+                    
+                    {/* Purchase Price Info - Internal View */}
+                    <div className="cart-item-purchase-info">
+                      <p className="cart-purchase-detail">
+                        📦 Item Cost: {formatPKR(item.itemPrice)}
+                      </p>
+                      <p className="cart-purchase-detail">
+                        📋 Unit Cost: {formatPKR(calculateUnitPrice(item))}
+                      </p>
+                    </div>
+
+                    {/* Sale Price Input */}
+                    <div className="cart-sale-price-input">
+                      <label className="cart-sale-label">Sale Price per Item:</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="cart-sale-input"
+                        placeholder={`Default: ${formatPKR(item.itemPrice)}`}
+                        value={salePrices[item.id] || ''}
+                        onChange={(e) => updateSalePrice(item.id, e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="cart-item-controls">
+                    <div className="cart-quantity-controls">
+                      <button 
+                        className="cart-quantity-btn"
+                        onClick={() => updateQuantity(item.id, -1)}
+                        type="button"
+                      >
+                        -
+                      </button>
+                      <span className="cart-quantity">{item.quantity}</span>
+                      <button 
+                        className="cart-quantity-btn"
+                        onClick={() => updateQuantity(item.id, 1)}
+                        type="button"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="cart-item-total">
+                      {formatPKR(getSalePrice(item) * item.quantity)}
+                    </div>
                     <button 
-                      className="cart-quantity-btn"
-                      onClick={() => updateQuantity(item.id, -1)}
+                      className="cart-remove-btn"
+                      onClick={() => removeFromCart(item.id)}
+                      type="button"
+                      aria-label={`Remove ${item.title ?? item.name}`}
                     >
-                      -
-                    </button>
-                    <span className="cart-quantity">{item.quantity}</span>
-                    <button 
-                      className="cart-quantity-btn"
-                      onClick={() => updateQuantity(item.id, 1)}
-                    >
-                      +
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
                     </button>
                   </div>
-                  <div className="cart-item-total">${(item.price * item.quantity).toFixed(2)}</div>
-                  <button 
-                    className="cart-remove-btn"
-                    onClick={() => removeFromCart(item.id)}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
                 </div>
               </div>
             ))
@@ -121,12 +256,14 @@ const CartSection = ({
               <button 
                 className="cart-customer-btn"
                 onClick={() => setUserModalMode('select')}
+                type="button"
               >
                 Select
               </button>
               <button 
                 className="cart-customer-btn"
                 onClick={() => setUserModalMode('create')}
+                type="button"
               >
                 New
               </button>
@@ -135,12 +272,14 @@ const CartSection = ({
                   <button 
                     className="cart-customer-btn"
                     onClick={() => setUserModalMode('edit')}
+                    type="button"
                   >
                     Edit
                   </button>
                   <button 
                     className="cart-customer-btn cart-remove-customer"
                     onClick={() => setSelectedCustomer(null)}
+                    type="button"
                   >
                     Remove
                   </button>
@@ -155,15 +294,15 @@ const CartSection = ({
           <div className="cart-summary">
             <div className="cart-summary-row">
               <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>{formatPKR(subtotal)}</span>
             </div>
             <div className="cart-summary-row">
               <span>Tax (8%):</span>
-              <span>${tax.toFixed(2)}</span>
+              <span>{formatPKR(tax)}</span>
             </div>
             <div className="cart-summary-row cart-total-row">
               <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatPKR(total)}</span>
             </div>
           </div>
         )}
@@ -195,9 +334,9 @@ const CartSection = ({
                   value={amountPaid}
                   onChange={(e) => setAmountPaid(e.target.value)}
                 />
-                {amountPaid && (
+                {amountPaid !== '' && (
                   <div className="cart-change">
-                    Change: <span className="cart-change-amount">${change.toFixed(2)}</span>
+                    Change: <span className="cart-change-amount">{formatPKR(change)}</span>
                   </div>
                 )}
               </div>
@@ -206,7 +345,8 @@ const CartSection = ({
             <button 
               className="cart-checkout-btn"
               onClick={handlePaymentSubmit}
-              disabled={paymentMethod === 'cash' && (!amountPaid || parseFloat(amountPaid) < total)}
+              disabled={paymentMethod === 'cash' && !isCashSufficient()}
+              type="button"
             >
               <svg className="cart-checkout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="20,6 9,17 4,12"/>

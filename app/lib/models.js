@@ -21,7 +21,6 @@ const productSchema = new mongoose.Schema(
     units: { type: Number, required: true, min: 0 },
     itemsPerUnit: { type: Number, required: true, min: 0 }, 
     extraItems: { type: Number, default: 0, min: 0 },
-    itemSalePrice: { type: Number, min: 0 }, //sale price per item
     category: { type: String },
     color: { type: String },
     size: { type: String },

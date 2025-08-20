@@ -93,6 +93,45 @@ export const fetchProducts = async (q = "", page = 1) => {
   }
 };
 
+// fetch all products
+// export const fetchAllProducts = async () => {
+//   try {
+//     await connect();
+
+//     const products = await Product.find().lean();
+
+//     // normalize _id and keep things client-safe
+//     const plainProducts = products.map((p) => ({
+//       id: p._id.toString(),
+//       name: p.title ?? "",
+//       purchasePrice: Number(p.purchasePrice),
+//       category: p.category ?? "General",
+//       barcode: p._id.toString(), // using id as barcode
+//       totalItems: Number(p.totalItems ?? 0),
+//       // __raw: p, 
+//     }));
+
+//     return { count: plainProducts.length, products: plainProducts };
+//   } catch (err) {
+//     console.error("fetchAllProducts error:", err);
+//     return { count: 0, products: [] };
+//   }
+// };
+
+
+export const fetchAllProducts = async () => {
+  try {
+    await connect();
+
+    // get products as plain JS objects
+    const products = await Product.find().lean();
+
+    return products; // just return the array directly
+  } catch (err) {
+    console.error("fetchAllProducts error:", err);
+    return [];
+  }
+};
 
 export const fetchProduct = async (id) => {
   try {

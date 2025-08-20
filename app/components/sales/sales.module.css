@@ -14,9 +14,10 @@
   color: var(--text);
 }
 
-.sales-icon {
-  margin-right: 0.5rem;
-}
+/* .sales-icon {
+  margin-right: 10px !important; 
+
+} */
 
 .sales-content {
   display: grid;
