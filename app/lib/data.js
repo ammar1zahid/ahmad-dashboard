@@ -1,4 +1,4 @@
-import { Product, User } from "./models";
+import { Product, User , Customer } from "./models";
 import connect from "./utils";
 
 
@@ -149,6 +149,87 @@ export const fetchProduct = async (id) => {
 
 
 
+//customers
+
+
+// Fetch customers with pagination & optional search
+export const fetchCustomers = async (q = "", page = 1) => {
+  const query = (typeof q === "string" ? q : "").trim();
+  page = parseInt(page, 10) || 1;
+  if (page < 1) page = 1;
+
+  const ITEM_PER_PAGE = 10; // adjust per your needs
+  const regex = new RegExp(query, "i");
+
+  try {
+    await connect();
+
+    const filter = query ? { $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }, { phone: { $regex: regex } }] } : {};
+
+    const count = await Customer.countDocuments(filter);
+
+    const customers = await Customer.find(filter)
+      .skip(ITEM_PER_PAGE * (page - 1))
+      .limit(ITEM_PER_PAGE)
+      .lean();
+
+    // normalize id to string and ensure createdAt shape if you want:
+    const plain = customers.map((c) => ({
+      id: c._id.toString(),
+      name: c.name ?? "",
+      email: c.email ?? "",
+      phone: c.phone ?? "",
+      address: c.address ?? "",
+      createdAt: c.createdAt ? c.createdAt.toISOString().split("T")[0] : undefined,
+      __raw: c, // optional for debugging
+    }));
+
+    return { count, customers: plain };
+  } catch (err) {
+    console.error("fetchCustomers error:", err);
+    return { count: 0, customers: [] };
+  }
+};
+
+// fetch a single customer by id
+export const fetchCustomer = async (id) => {
+  try {
+    await connect();
+    const customer = await Customer.findById(id).lean();
+    if (!customer) return null;
+    return {
+      id: customer._id.toString(),
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      createdAt: customer.createdAt ? customer.createdAt.toISOString().split("T")[0] : undefined,
+      __raw: customer,
+    };
+  } catch (err) {
+    console.error("fetchCustomer error:", err);
+    return null;
+  }
+};
+
+// fetch all customers (useful for sales UI select dropdowns)
+export const fetchAllCustomers = async () => {
+  try {
+    await connect();
+    const customers = await Customer.find().lean();
+    return customers.map(c => ({
+      id: c._id.toString(),
+      name: c.name ?? "",
+      email: c.email ?? "",
+      phone: c.phone ?? "",
+      address: c.address ?? "",
+      createdAt: c.createdAt ? c.createdAt.toISOString().split("T")[0] : undefined,
+    }));
+  } catch (err) {
+    console.error("fetchAllCustomers error:", err);
+    return [];
+  }
+};
 
 
 

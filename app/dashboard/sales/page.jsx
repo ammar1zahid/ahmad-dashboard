@@ -2,17 +2,14 @@
 export const dynamic = "force-dynamic";
 
 import SalesClientPage from "./SalesClient";
-import { fetchAllProducts } from "@/app/lib/data";
+import { fetchAllProducts, fetchAllCustomers } from "@/app/lib/data";
+import { addCustomerFromModal, updateCustomerFromModal } from "@/app/lib/actions";
 
 function serializeProduct(p) {
   if (!p) return null;
-
-  // convert ObjectId/_id to string and dates to ISO strings
   const id = p._id ? String(p._id) : (p.id ? String(p.id) : "");
   const createdAt = p.createdAt ? (typeof p.createdAt === "string" ? p.createdAt : p.createdAt.toISOString()) : undefined;
   const updatedAt = p.updatedAt ? (typeof p.updatedAt === "string" ? p.updatedAt : p.updatedAt.toISOString()) : undefined;
-
-  // make sure numeric fields are plain numbers
   const purchasePrice = p.purchasePrice !== undefined ? Number(p.purchasePrice) : undefined;
   const itemPrice = p.itemPrice !== undefined ? Number(p.itemPrice) : undefined;
   const totalItems = p.totalItems !== undefined ? Number(p.totalItems) : undefined;
@@ -20,46 +17,67 @@ function serializeProduct(p) {
   const itemsPerUnit = p.itemsPerUnit !== undefined ? Number(p.itemsPerUnit) : undefined;
   const extraItems = p.extraItems !== undefined ? Number(p.extraItems) : undefined;
 
-
-  // build a plain object with only serializable values (include other fields you need)
   return {
-    // id (string) preferred for client
     id,
-    // keep original title/desc etc.
     title: p.title ?? "",
     desc: p.desc ?? "",
     category: p.category ?? "",
     color: p.color ?? "",
     size: p.size ?? "",
-    // numeric values
     purchasePrice,
     itemPrice,
     units,
     itemsPerUnit,
     extraItems,
     totalItems,
-    // timestamps as ISO strings
     createdAt,
     updatedAt,
-    // if you want to keep the full original raw object, do NOT pass it — it may contain non-serializable fields
-    // don't include p._id (ObjectId) — we already provided id as string
+  };
+}
+
+function serializeCustomer(c) {
+  if (!c) return null;
+  const id = c._id ? String(c._id) : (c.id ? String(c.id) : "");
+  const createdAt = c.createdAt ? (typeof c.createdAt === "string" ? c.createdAt : c.createdAt.toISOString()) : undefined;
+  return {
+    id,
+    name: c.name ?? "",
+    email: c.email ?? "",
+    phone: c.phone ?? "",
+    address: c.address ?? "",
+    createdAt,
   };
 }
 
 const SalesPage = async () => {
   let products = [];
+  let customers = [];
+
   try {
-    const raw = await fetchAllProducts(); // your function returns an array
-    // ensure raw is an array
-    const arr = Array.isArray(raw) ? raw : (raw?.products ?? []);
-    // serialize each product to plain JS values
-    products = arr.map(p => serializeProduct(p)).filter(Boolean);
+    const rawProducts = await fetchAllProducts(); // returns array
+    const prodArr = Array.isArray(rawProducts) ? rawProducts : (rawProducts?.products ?? []);
+    products = prodArr.map(p => serializeProduct(p)).filter(Boolean);
   } catch (err) {
     console.error("Failed to fetch all products for sales page", err);
     products = [];
   }
 
-  return <SalesClientPage products={products} />;
+  try {
+    // fetch customers from DB
+    const rawCustomers = await fetchAllCustomers(); // should return array
+    const custArr = Array.isArray(rawCustomers) ? rawCustomers : (rawCustomers?.customers ?? []);
+    customers = custArr.map(c => serializeCustomer(c)).filter(Boolean);
+  } catch (err) {
+    console.error("Failed to fetch customers for sales page", err);
+    customers = [];
+  }
+
+  return <SalesClientPage 
+      products={products} 
+      initialCustomers={customers} 
+      createCustomerAction={addCustomerFromModal}
+      updateCustomerAction={updateCustomerFromModal}
+  />;
 };
 
 export default SalesPage;

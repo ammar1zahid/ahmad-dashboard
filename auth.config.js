@@ -6,6 +6,7 @@ export const baseAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.username = user.username;
         token.img = user.img;
         token.isAdmin = user.isAdmin;
@@ -15,6 +16,7 @@ export const baseAuthConfig = {
     async session({ session, token }) {
       session.user = session.user ?? {};
       if (token) {
+        session.user.id = token.id;
         session.user.username = token.username;
         session.user.img = token.img;
         session.user.isAdmin = token.isAdmin;

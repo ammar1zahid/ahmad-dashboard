@@ -14,6 +14,7 @@ import {
   MdOutlineSettings,
   MdHelpCenter,
   MdLogout,
+  MdGroups ,
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import { useSession, signOut } from "next-auth/react";
@@ -32,6 +33,11 @@ const menuItems = [
         title: "Products",
         path: "/dashboard/products",
         icon: <MdShoppingBag />,
+      },
+      {
+        title: "Customers",
+        path: "/dashboard/customers",
+        icon: <MdGroups  />,
       },
       {
         title: "Sales",

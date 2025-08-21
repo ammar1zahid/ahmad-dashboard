@@ -19,6 +19,7 @@ const CustomerModal = ({
     phone: '',
     address: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form data when editing
   useEffect(() => {
@@ -40,20 +41,41 @@ const CustomerModal = ({
   }, [mode, selectedCustomer]);
 
   const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm)
+    (customer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (customer.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (customer.phone || '').includes(searchTerm)
   );
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
-    if (mode === 'create') {
-      if (handleCreateCustomer(customerForm)) {
-        setCustomerForm({ name: '', email: '', phone: '', address: '' });
+
+    // basic client-side validation
+    if (!customerForm.name || !customerForm.email) {
+      alert('Name and email are required!');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (mode === 'create') {
+        // parent handler should return true on success
+        const ok = await handleCreateCustomer(customerForm);
+        if (ok) {
+          setCustomerForm({ name: '', email: '', phone: '', address: '' });
+        }
+      } else if (mode === 'edit') {
+        const ok = await handleEditCustomer(customerForm);
+        // parent handler is expected to close the modal on success
+        if (!ok) {
+          // if parent returns false, keep modal open so user can fix issues
+          // you could show additional UI here if desired
+        }
       }
-    } else if (mode === 'edit') {
-      handleEditCustomer(customerForm);
+    } catch (err) {
+      console.error('Customer modal submit error:', err);
+      alert(err?.message || 'An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -89,7 +111,7 @@ const CustomerModal = ({
             {mode === 'create' && 'Create New Customer'}
             {mode === 'edit' && 'Edit Customer'}
           </h2>
-          <button className="customer-modal-close" onClick={closeModal}>
+          <button className="customer-modal-close" onClick={closeModal} aria-label="Close">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
@@ -103,7 +125,7 @@ const CustomerModal = ({
               {/* Search */}
               <div className="customer-modal-search">
                 <div className="customer-search-input-wrapper">
-                  <svg className="customer-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="customer-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                     <circle cx="11" cy="11" r="8"/>
                     <path d="M21 21l-4.35-4.35"/>
                   </svg>
@@ -137,7 +159,7 @@ const CustomerModal = ({
                       className={`customer-modal-item ${selectedCustomer?.id === customer.id ? 'selected' : ''}`}
                       onClick={() => selectCustomer(customer)}
                     >
-                      <div className="customer-modal-item-avatar">
+                      <div className="customer-modal-item-avatar" aria-hidden>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                           <circle cx="12" cy="7" r="4"/>
@@ -150,7 +172,7 @@ const CustomerModal = ({
                           <p className="customer-modal-item-phone">{customer.phone}</p>
                         )}
                       </div>
-                      <div className="customer-modal-item-check">
+                      <div className="customer-modal-item-check" aria-hidden>
                         {selectedCustomer?.id === customer.id && (
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="20,6 9,17 4,12"/>
@@ -224,14 +246,16 @@ const CustomerModal = ({
                   type="button"
                   className="customer-modal-btn customer-modal-btn-secondary"
                   onClick={closeModal}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="customer-modal-btn customer-modal-btn-primary"
+                  disabled={isSubmitting}
                 >
-                  {mode === 'create' ? 'Create Customer' : 'Update Customer'}
+                  {isSubmitting ? (mode === 'create' ? 'Creating…' : 'Updating…') : (mode === 'create' ? 'Create Customer' : 'Update Customer')}
                 </button>
               </div>
             </form>

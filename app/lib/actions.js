@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Product, User } from "./models";
+import { Product, User , Customer } from "./models";
 import connect from "./utils";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
@@ -190,4 +190,131 @@ export async function deleteProduct(formData) {
   }
 
   revalidatePath("/dashboard/products");
+}
+
+
+// ------------------ Customers ------------------
+
+// Add Customer
+export async function addCustomer(formData) {
+  const { name, email, phone, address } = Object.fromEntries(formData);
+
+  if (!name || !email) {
+    throw new Error("Name and email are required");
+  }
+
+  try {
+    await connect();
+
+    const newCustomer = new Customer({
+      name,
+      email,
+      phone,
+      address,
+    });
+
+    await newCustomer.save();
+  } catch (err) {
+    console.error("addCustomer error:", err);
+    throw new Error("Failed to create customer!");
+  }
+
+  revalidatePath("/dashboard/customers");
+  redirect("/dashboard/customers");
+}
+
+// Update Customer
+export async function updateCustomer(formData) {
+  const { id, name, email, phone, address } = Object.fromEntries(formData);
+
+  if (!id) throw new Error("Customer id is required");
+  if (!name || !email) {
+    throw new Error("Name and email are required");
+  }
+
+  try {
+    await connect();
+
+    const customer = await Customer.findById(id);
+    if (!customer) throw new Error("Customer not found");
+
+    if (name !== undefined) customer.name = name;
+    if (email !== undefined) customer.email = email;
+    if (phone !== undefined) customer.phone = phone;
+    if (address !== undefined) customer.address = address;
+
+    await customer.save();
+  } catch (err) {
+    console.error("updateCustomer error:", err);
+    throw new Error("Failed to update customer!");
+  }
+
+  revalidatePath("/dashboard/customers");
+  redirect("/dashboard/customers");
+}
+// Add Customer from Modal
+export async function addCustomerFromModal(data) {
+  "use server";
+  const { name, email, phone, address } = data ?? {};
+
+  if (!name || !email) throw new Error("Name and email are required");
+
+  await connect();
+
+  const newCustomer = new Customer({ name, email, phone, address });
+  const saved = await newCustomer.save();
+
+  return {
+    id: String(saved._id),
+    name: saved.name,
+    email: saved.email,
+    phone: saved.phone ?? "",
+    address: saved.address ?? "",
+    createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
+  };
+}
+
+// Update Customer from Modal
+export async function updateCustomerFromModal(id, data) {
+  "use server";
+  const { name, email, phone, address } = data ?? {};
+
+  if (!id) throw new Error("Customer id is required");
+  if (!name || !email) throw new Error("Name and email are required");
+
+  await connect();
+
+  const updated = await Customer.findByIdAndUpdate(
+    id,
+    { name, email, phone, address },
+    { new: true }
+  );
+
+  if (!updated) throw new Error("Customer not found");
+
+  return {
+    id: String(updated._id),
+    name: updated.name,
+    email: updated.email,
+    phone: updated.phone ?? "",
+    address: updated.address ?? "",
+    createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
+  };
+}
+
+// Delete Customer
+export async function deleteCustomer(formData) {
+  const { id } = Object.fromEntries(formData);
+
+  if (!id) throw new Error("Customer id is required");
+
+  try {
+    await connect();
+    await Customer.findByIdAndDelete(id);
+  } catch (err) {
+    console.error("deleteCustomer error:", err);
+    throw new Error("Failed to delete customer!");
+  }
+
+  revalidatePath("/dashboard/customers");
 }

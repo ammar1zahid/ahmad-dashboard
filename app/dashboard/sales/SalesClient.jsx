@@ -13,18 +13,19 @@ import "../../components/sales/sales.module.css";
 /**
  * Client-side SalesPage component
  * Props:
- *   - products: array of { id, name, price, category, barcode, totalItems, ... }
+ *   - products: array of serialized products (from server)
+ *   - initialCustomers: array of serialized customers (from server)
  */
-const SalesClientPage = ({ products: initialProducts = [] }) => {
+const SalesClientPage = ({ products: initialProducts = [], initialCustomers = [] , createCustomerAction, updateCustomerAction}) => {
   // Use fetched products instead of static list
   const [products] = useState(initialProducts);
 
-  // Keep existing static customers
-  const [customers, setCustomers] = useState([
-    { id: 1, name: "John Doe", email: "john@example.com", phone: "555-0123", address: "123 Main St", createdAt: "2024-01-15" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "555-0456", address: "456 Oak Ave", createdAt: "2024-01-20" },
-    { id: 3, name: "Bob Johnson", email: "bob@example.com", phone: "555-0789", address: "789 Pine Rd", createdAt: "2024-02-01" }
-  ]);
+  // Initialize customers from server-provided list (falls back to empty array)
+  const [customers, setCustomers] = useState(
+    Array.isArray(initialCustomers) && initialCustomers.length > 0
+      ? initialCustomers
+      : []
+  );
 
   // State management
   const [cart, setCart] = useState([]);
@@ -34,7 +35,7 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
   const [lastTransaction, setLastTransaction] = useState(null);
   const [userModalMode, setUserModalMode] = useState(null);
 
-  // Cart operations (no changes)
+  // Cart operations
   const addToCart = (product) => {
     const existingItem = cart.find(item => item.id === product.id);
     if (existingItem) {
@@ -66,7 +67,7 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
     setCart([]);
   };
 
-  // Basic calculations (these will be overridden by CartSection for custom pricing)
+  // Basic calculations
   const calculateSubtotal = () => {
     return cart.reduce((sum, item) => sum + (item.itemPrice * item.quantity), 0);
   };
@@ -87,45 +88,83 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
     return Math.max(0, paid - total);
   };
 
-  // Customer operations
-  const handleCreateCustomer = (customerForm) => {
+  // Customer operations (client-only — still local state)
+//   const handleCreateCustomer = (customerForm) => {
+//     if (!customerForm.name || !customerForm.email) {
+//       alert('Name and email are required!');
+//       return false;
+//     }
+
+//     // DB customers use string ids; generate a stable temporary id for client-side entries
+//     const newCustomer = {
+//       id: String(Date.now()),
+//       ...customerForm,
+//       createdAt: new Date().toISOString().split('T')[0]
+//     };
+
+//     setCustomers(prev => [...prev, newCustomer]);
+//     setSelectedCustomer(newCustomer);
+//     setUserModalMode(null);
+//     return true;
+//   };
+
+//   const handleEditCustomer = (customerForm) => {
+//     if (!selectedCustomer || !customerForm.name || !customerForm.email) {
+//       alert('Name and email are required!');
+//       return false;
+//     }
+
+//     const updatedCustomer = {
+//       ...selectedCustomer,
+//       ...customerForm
+//     };
+
+//     setCustomers(prev => prev.map(c => c.id === selectedCustomer.id ? updatedCustomer : c));
+//     setSelectedCustomer(updatedCustomer);
+//     setUserModalMode(null);
+//     return true;
+//   };
+
+
+    const handleCreateCustomer = async (customerForm) => {
     if (!customerForm.name || !customerForm.email) {
       alert('Name and email are required!');
       return false;
     }
 
-    const newCustomer = {
-      id: Math.max(...customers.map(c => c.id), 0) + 1,
-      ...customerForm,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    setCustomers([...customers, newCustomer]);
-    setSelectedCustomer(newCustomer);
-    setUserModalMode(null);
-    return true;
+    try {
+      const createdCustomer = await createCustomerAction(customerForm);
+      setCustomers(prev => [...prev, createdCustomer]);
+      setSelectedCustomer(createdCustomer);
+      setUserModalMode(null);
+      return true;
+    } catch (err) {
+      console.error('create customer (server action) error:', err);
+      alert('Failed to create customer.');
+      return false;
+    }
   };
 
-  const handleEditCustomer = (customerForm) => {
+  const handleEditCustomer = async (customerForm) => {
     if (!selectedCustomer || !customerForm.name || !customerForm.email) {
       alert('Name and email are required!');
       return false;
     }
 
-    const updatedCustomer = {
-      ...selectedCustomer,
-      ...customerForm
-    };
-
-    setCustomers(customers.map(c => c.id === selectedCustomer.id ? updatedCustomer : c));
-    setSelectedCustomer(updatedCustomer);
-    setUserModalMode(null);
-    return true;
+    try {
+      const updatedCustomer = await updateCustomerAction(selectedCustomer.id, customerForm);
+      setCustomers(prev => prev.map(c => (c.id === updatedCustomer.id ? updatedCustomer : c)));
+      setSelectedCustomer(updatedCustomer);
+      setUserModalMode(null);
+      return true;
+    } catch (err) {
+      console.error('update customer (server action) error:', err);
+      alert('Failed to update customer.');
+      return false;
+    }
   };
-
-  // Process sale - updated to handle custom transactions from CartSection
+  // Process sale
   const processSale = (paymentMethod, amountPaid, customTransaction = null) => {
-    // If a custom transaction is provided (from CartSection), use it directly
     if (customTransaction) {
       setSalesHistory([customTransaction, ...salesHistory]);
       setLastTransaction(customTransaction);
@@ -135,7 +174,6 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
       return;
     }
 
-    // Fallback to original logic (shouldn't be used with new CartSection)
     if (cart.length === 0) {
       alert('Cart is empty!');
       return;
@@ -180,13 +218,11 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
       </h1>
 
       <div className="sales-content">
-        {/* Products Section */}
         <ProductsSection 
           products={products}
           addToCart={addToCart}
         />
 
-        {/* Cart Section */}
         <CartSection
           cart={cart}
           selectedCustomer={selectedCustomer}
@@ -203,16 +239,13 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
         />
       </div>
 
-      {/* Sales History */}
       <SalesHistory salesHistory={salesHistory} />
 
-      {/* Quick Stats */}
       <QuickStats 
         salesHistory={salesHistory}
         customers={customers}
       />
 
-      {/* Customer Modal */}
       {userModalMode && (
         <CustomerModal
           mode={userModalMode}
@@ -225,7 +258,6 @@ const SalesClientPage = ({ products: initialProducts = [] }) => {
         />
       )}
 
-      {/* Receipt Modal */}
       {showReceipt && lastTransaction && (
         <ReceiptModal
           transaction={lastTransaction}

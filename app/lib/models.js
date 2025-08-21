@@ -38,5 +38,21 @@ productSchema.pre("save", function (next) {
   next();
 });
 
+
+const customerSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true, min: 1 },
+    email: { type: String, required: true, trim: true, lowercase: true, unique: true },
+    phone: { type: String, trim: true },
+    address: { type: String, trim: true },
+    // You can add other fields such as company, notes, customerType, etc.
+  },
+  { timestamps: true } // createdAt, updatedAt
+);
+
+
+
+
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const Product = mongoose.models.Product || mongoose.model("Product", productSchema);
+export const Customer = mongoose.models.Customer || mongoose.model("Customer", customerSchema);
