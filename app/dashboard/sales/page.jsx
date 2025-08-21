@@ -1,9 +1,12 @@
-// app/sales/page.jsx
 export const dynamic = "force-dynamic";
 
 import SalesClientPage from "./SalesClient";
-import { fetchAllProducts, fetchAllCustomers } from "@/app/lib/data";
-import { addCustomerFromModal, updateCustomerFromModal } from "@/app/lib/actions";
+import { fetchAllProducts, fetchAllCustomers, fetchSales } from "@/app/lib/data";
+import {
+  addCustomerFromModal,
+  updateCustomerFromModal,
+  createSaleFromModal,
+} from "@/app/lib/actions"; 
 
 function serializeProduct(p) {
   if (!p) return null;
@@ -49,9 +52,32 @@ function serializeCustomer(c) {
   };
 }
 
+function serializeSale(s) {
+  if (!s) return null;
+  // s is expected to be the plain object produced by fetchSales (id, items, subtotal, tax, total, paymentMethod, amountPaid, change, customer, sellerId, createdAt...)
+  const id = s._id ? String(s._id) : (s.id ? String(s.id) : "");
+  const createdAt = s.createdAt ? (typeof s.createdAt === "string" ? s.createdAt : s.createdAt.toISOString()) : (s.createdAt || undefined);
+  const timestamp = createdAt ? new Date(createdAt).toLocaleString() : (s.timestamp || new Date().toLocaleString());
+  return {
+    id,
+    timestamp,
+    items: s.items ?? [],
+    subtotal: Number(s.subtotal ?? 0),
+    tax: Number(s.tax ?? 0),
+    total: Number(s.total ?? 0),
+    paymentMethod: s.paymentMethod ?? "cash",
+    amountPaid: Number(s.amountPaid ?? 0),
+    change: Number(s.change ?? 0),
+    customer: s.customer ?? undefined,
+    sellerId: s.sellerId ? String(s.sellerId) : undefined,
+    createdAt,
+  };
+}
+
 const SalesPage = async () => {
   let products = [];
   let customers = [];
+  let sales = [];
 
   try {
     const rawProducts = await fetchAllProducts(); // returns array
@@ -72,12 +98,25 @@ const SalesPage = async () => {
     customers = [];
   }
 
-  return <SalesClientPage 
-      products={products} 
-      initialCustomers={customers} 
+  try {
+    // fetch recent sales (adjust limit as needed)
+    const { sales: fetchedSales = [] } = await fetchSales({ page: 1, limit: 100 });
+    sales = Array.isArray(fetchedSales) ? fetchedSales.map(serializeSale).filter(Boolean) : [];
+  } catch (err) {
+    console.error("Failed to fetch sales for sales page", err);
+    sales = [];
+  }
+
+  return (
+    <SalesClientPage
+      products={products}
+      initialCustomers={customers}
+      initialSales={sales}
       createCustomerAction={addCustomerFromModal}
       updateCustomerAction={updateCustomerFromModal}
-  />;
+      createSaleAction={createSaleFromModal}
+    />
+  );
 };
 
 export default SalesPage;

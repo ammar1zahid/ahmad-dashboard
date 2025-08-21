@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Product, User , Customer } from "./models";
+import { Product, User , Customer , Sale } from "./models";
 import connect from "./utils";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
@@ -317,4 +317,186 @@ export async function deleteCustomer(formData) {
   }
 
   revalidatePath("/dashboard/customers");
+}
+
+
+
+
+// ===========================
+// Customer Actions
+// ===========================
+
+
+
+
+// Create Sale from client (server action)
+export async function createSaleFromModal(saleData = {}) {
+  // saleData expected shape:
+  // { items: [{ productId, title, quantity, price, originalItemPrice, originalPurchasePrice }, ...], ... }
+
+  // Resolve sellerId from session if possible
+  let sellerId;
+  try {
+    const { getServerSession } = await import("next-auth/next");
+    const { authOptions } = await import("@/app/api/auth/[...nextauth]/route"); // adjust path if different
+
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      sellerId = session.user.id;
+    } else {
+      sellerId = saleData.sellerId || undefined;
+    }
+  } catch (e) {
+    sellerId = saleData.sellerId || undefined;
+  }
+
+  // Basic validation
+  if (!Array.isArray(saleData.items) || saleData.items.length === 0) {
+    throw new Error("Sale must include at least one item");
+  }
+
+  // coerce numbers
+  const subtotal = Number(saleData.subtotal || 0);
+  const tax = Number(saleData.tax || 0);
+  const total = Number(saleData.total || 0);
+  const amountPaid = Number(saleData.amountPaid || 0);
+  const change = Number(saleData.change || 0);
+
+  try {
+    await connect();
+
+    const newSale = new Sale({
+      items: saleData.items.map(it => ({
+        // keep productId as ObjectId on DB write (if provided), but allow string too
+        productId: it.productId ? it.productId : undefined,
+        title: it.title ?? "",
+        quantity: Number(it.quantity || 1),
+        price: Number(it.price || 0),
+        originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+        originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined
+      })),
+      subtotal,
+      tax,
+      total,
+      paymentMethod: saleData.paymentMethod || "cash",
+      amountPaid,
+      change,
+      customer: saleData.customer || undefined,
+      sellerId: sellerId ? sellerId : undefined,
+      notes: saleData.notes || undefined,
+    });
+
+    const saved = await newSale.save();
+
+    // optional: revalidate listing page
+    try {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath("/sales");
+    } catch (e) {
+      // ignore if revalidate not available
+    }
+
+    // map saved result to plain serializable object
+    const mappedItems = (saved.items || []).map(it => ({
+      productId: it.productId ? String(it.productId) : undefined,
+      title: it.title ?? "",
+      quantity: Number(it.quantity || 0),
+      price: Number(it.price || 0),
+      originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+      originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
+    }));
+
+    const mappedCustomer = saved.customer
+      ? {
+          // handle both saved.customer.id or saved.customer._id shape
+          id: saved.customer.id ? String(saved.customer.id) : (saved.customer._id ? String(saved.customer._id) : undefined),
+          name: saved.customer.name ?? "",
+          email: saved.customer.email ?? "",
+          phone: saved.customer.phone ?? "",
+          address: saved.customer.address ?? "",
+        }
+      : undefined;
+
+    return {
+      id: String(saved._id),
+      items: mappedItems,
+      subtotal: Number(saved.subtotal || 0),
+      tax: Number(saved.tax || 0),
+      total: Number(saved.total || 0),
+      paymentMethod: saved.paymentMethod ?? "cash",
+      amountPaid: Number(saved.amountPaid || 0),
+      change: Number(saved.change || 0),
+      customer: mappedCustomer,
+      sellerId: saved.sellerId ? String(saved.sellerId) : undefined,
+      createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
+      updatedAt: saved.updatedAt ? saved.updatedAt.toISOString() : undefined,
+      notes: saved.notes ?? undefined,
+    };
+  } catch (err) {
+    console.error("createSaleFromModal error:", err);
+    throw new Error("Failed to save sale!");
+  }
+}
+
+
+// Update existing sale (server action)
+export async function updateSaleFromModal(id, updateData = {}) {
+  "use server";
+  if (!id) throw new Error("Sale id is required");
+
+  try {
+    await connect();
+
+    const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
+    if (!updated) throw new Error("Sale not found");
+
+    try {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath("/sales");
+    } catch (e) { 
+      // ignore if revalidate not available
+      }
+
+    return {
+      id: updated._id.toString(),
+      items: updated.items,
+      subtotal: updated.subtotal,
+      tax: updated.tax,
+      total: updated.total,
+      paymentMethod: updated.paymentMethod,
+      amountPaid: updated.amountPaid,
+      change: updated.change,
+      customer: updated.customer,
+      sellerId: updated.sellerId ? String(updated.sellerId) : undefined,
+      createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
+      updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
+      notes: updated.notes,
+    };
+  } catch (err) {
+    console.error("updateSaleFromModal error:", err);
+    throw new Error("Failed to update sale!");
+  }
+}
+
+// Delete sale (server action)
+export async function deleteSaleFromModal(id) {
+  "use server";
+  if (!id) throw new Error("Sale id is required");
+  try {
+    await connect();
+    await Sale.findByIdAndDelete(id);
+
+    try {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath("/sales");
+    } catch (e) 
+    {
+      console.log(" revalidatePath error: ",e);
+    }
+
+    return true;
+  } catch (err) {
+    console.error("deleteSaleFromModal error:", err);
+    throw new Error("Failed to delete sale!");
+  }
 }

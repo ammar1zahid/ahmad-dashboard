@@ -1,26 +1,5 @@
-import { Product, User , Customer } from "./models";
+import { Product, User , Customer , Sale } from "./models";
 import connect from "./utils";
-
-
-// export const fetchUsers = async (q,page) => {
- 
-//   const regex = new RegExp(q, "i");
-//   const ITEM_PER_PAGE = 2;
-
-//   try {
-//     await connect();
-//     // const users = await User.find();
-//     // return users
-//     const count = await User.find({ username: { $regex: regex } }).count();
-//     const users = await User.find({ username: { $regex: regex } })
-//       .limit(ITEM_PER_PAGE)
-//       .skip(ITEM_PER_PAGE * (page - 1));
-//     return { count, users };
-//   } catch (err) {
-//     console.log(err);
-//     throw new Error("Failed to fetch users!");
-//   }
-// };
 
 
 export const fetchUsers = async (q = "", page = 1) => {
@@ -92,31 +71,6 @@ export const fetchProducts = async (q = "", page = 1) => {
     return { count: 0, products: [] };
   }
 };
-
-// fetch all products
-// export const fetchAllProducts = async () => {
-//   try {
-//     await connect();
-
-//     const products = await Product.find().lean();
-
-//     // normalize _id and keep things client-safe
-//     const plainProducts = products.map((p) => ({
-//       id: p._id.toString(),
-//       name: p.title ?? "",
-//       purchasePrice: Number(p.purchasePrice),
-//       category: p.category ?? "General",
-//       barcode: p._id.toString(), // using id as barcode
-//       totalItems: Number(p.totalItems ?? 0),
-//       // __raw: p, 
-//     }));
-
-//     return { count: plainProducts.length, products: plainProducts };
-//   } catch (err) {
-//     console.error("fetchAllProducts error:", err);
-//     return { count: 0, products: [] };
-//   }
-// };
 
 
 export const fetchAllProducts = async () => {
@@ -218,7 +172,7 @@ export const fetchAllCustomers = async () => {
     await connect();
     const customers = await Customer.find().lean();
     return customers.map(c => ({
-      id: c._id.toString(),
+      id: c._id ? String(c._id) : (c.id ? String(c.id) : undefined),
       name: c.name ?? "",
       email: c.email ?? "",
       phone: c.phone ?? "",
@@ -231,6 +185,185 @@ export const fetchAllCustomers = async () => {
   }
 };
 
+
+
+// Sales data
+
+// Create a sale (low-level, server-side)
+export const createSale = async (saleData) => {
+  try {
+    await connect();
+
+    // normalize items if needed
+    const sale = new Sale({
+      items: saleData.items || [],
+      subtotal: Number(saleData.subtotal || 0),
+      tax: Number(saleData.tax || 0),
+      total: Number(saleData.total || 0),
+      paymentMethod: saleData.paymentMethod || "cash",
+      amountPaid: Number(saleData.amountPaid || 0),
+      change: Number(saleData.change || 0),
+      customer: saleData.customer || undefined,
+      sellerId: saleData.sellerId || undefined,
+      notes: saleData.notes || undefined,
+    });
+
+    const saved = await sale.save();
+
+    return {
+      id: String(saved._id),
+      items: saved.items,
+      subtotal: saved.subtotal,
+      tax: saved.tax,
+      total: saved.total,
+      paymentMethod: saved.paymentMethod,
+      amountPaid: saved.amountPaid,
+      change: saved.change,
+      customer: saved.customer,
+      sellerId: saved.sellerId ? String(saved.sellerId) : undefined,
+      createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
+      updatedAt: saved.updatedAt ? saved.updatedAt.toISOString() : undefined,
+      notes: saved.notes,
+    };
+  } catch (err) {
+    console.error("createSale error:", err);
+    throw new Error("Failed to create sale!");
+  }
+};
+
+// Fetch single sale by id
+export const fetchSale = async (id) => {
+  try {
+    await connect();
+    const s = await Sale.findById(id).lean();
+    if (!s) return null;
+    return {
+      id: s._id.toString(),
+      items: s.items,
+      subtotal: s.subtotal,
+      tax: s.tax,
+      total: s.total,
+      paymentMethod: s.paymentMethod,
+      amountPaid: s.amountPaid,
+      change: s.change,
+      customer: s.customer,
+      sellerId: s.sellerId ? String(s.sellerId) : undefined,
+      createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
+      updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
+      notes: s.notes,
+    };
+  } catch (err) {
+    console.error("fetchSale error:", err);
+    return null;
+  }
+};
+
+
+// Fetch many sales (with optional pagination / filter)
+export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null } = {}) => {
+  try {
+    await connect();
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (sellerId) filter.sellerId = sellerId;
+    if (q) {
+      const regex = new RegExp(String(q), "i");
+      filter.$or = [
+        { "customer.name": { $regex: regex } },
+        { paymentMethod: { $regex: regex } },
+        { notes: { $regex: regex } }
+      ];
+    }
+
+    const count = await Sale.countDocuments(filter);
+    const rows = await Sale.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+
+    const data = rows.map(s => {
+      const items = (s.items || []).map(it => ({
+        productId: it.productId ? String(it.productId) : undefined,
+        title: it.title ?? "",
+        quantity: Number(it.quantity ?? 0),
+        price: Number(it.price ?? 0),
+        originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+        originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
+      }));
+
+      const customer = s.customer
+        ? {
+            id: s.customer.id ? String(s.customer.id) : (s.customer._id ? String(s.customer._id) : undefined),
+            name: s.customer.name ?? "",
+            email: s.customer.email ?? "",
+            phone: s.customer.phone ?? "",
+            address: s.customer.address ?? "",
+          }
+        : undefined;
+
+      return {
+        id: s._id ? String(s._id) : (s.id ? String(s.id) : undefined),
+        items,
+        subtotal: Number(s.subtotal ?? 0),
+        tax: Number(s.tax ?? 0),
+        total: Number(s.total ?? 0),
+        paymentMethod: s.paymentMethod ?? "cash",
+        amountPaid: Number(s.amountPaid ?? 0),
+        change: Number(s.change ?? 0),
+        customer,
+        sellerId: s.sellerId ? String(s.sellerId) : undefined,
+        createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
+        updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
+        notes: s.notes ?? undefined,
+      };
+    });
+
+    return { count, sales: data };
+  } catch (err) {
+    console.error("fetchSales error:", err);
+    return { count: 0, sales: [] };
+  }
+};
+
+
+// Update sale (limited fields)
+export const updateSale = async (id, updateData) => {
+  try {
+    await connect();
+    const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
+    if (!updated) return null;
+    return {
+      id: updated._id.toString(),
+      items: updated.items,
+      subtotal: updated.subtotal,
+      tax: updated.tax,
+      total: updated.total,
+      paymentMethod: updated.paymentMethod,
+      amountPaid: updated.amountPaid,
+      change: updated.change,
+      customer: updated.customer,
+      sellerId: updated.sellerId ? String(updated.sellerId) : undefined,
+      createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
+      updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
+      notes: updated.notes,
+    };
+  } catch (err) {
+    console.error("updateSale error:", err);
+    throw new Error("Failed to update sale!");
+  }
+};
+
+// Delete sale
+export const deleteSale = async (id) => {
+  try {
+    await connect();
+    await Sale.findByIdAndDelete(id);
+    return true;
+  } catch (err) {
+    console.error("deleteSale error:", err);
+    throw new Error("Failed to delete sale!");
+  }
+};
 
 
 

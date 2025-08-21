@@ -1,4 +1,3 @@
-// app/sales/SalesClient.jsx
 "use client";
 
 import React, { useState } from "react";
@@ -15,22 +14,32 @@ import "../../components/sales/sales.module.css";
  * Props:
  *   - products: array of serialized products (from server)
  *   - initialCustomers: array of serialized customers (from server)
+ *   - initialSales: array of serialized sales (from server)
+ *   - createCustomerAction, updateCustomerAction: server actions
+ *   - createSaleAction, updateSaleAction: server actions for sales
  */
-const SalesClientPage = ({ products: initialProducts = [], initialCustomers = [] , createCustomerAction, updateCustomerAction}) => {
+const SalesClientPage = ({
+  products: initialProducts = [],
+  initialCustomers = [],
+  initialSales = [],
+  createCustomerAction,
+  updateCustomerAction,
+  createSaleAction,
+
+}) => {
   // Use fetched products instead of static list
   const [products] = useState(initialProducts);
 
   // Initialize customers from server-provided list (falls back to empty array)
   const [customers, setCustomers] = useState(
-    Array.isArray(initialCustomers) && initialCustomers.length > 0
-      ? initialCustomers
-      : []
+    Array.isArray(initialCustomers) && initialCustomers.length > 0 ? initialCustomers : []
   );
 
   // State management
   const [cart, setCart] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [salesHistory, setSalesHistory] = useState([]);
+  // use persisted sales as initial history (server-supplied)
+  const [salesHistory, setSalesHistory] = useState(Array.isArray(initialSales) ? initialSales : []);
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastTransaction, setLastTransaction] = useState(null);
   const [userModalMode, setUserModalMode] = useState(null);
@@ -88,45 +97,8 @@ const SalesClientPage = ({ products: initialProducts = [], initialCustomers = []
     return Math.max(0, paid - total);
   };
 
-  // Customer operations (client-only — still local state)
-//   const handleCreateCustomer = (customerForm) => {
-//     if (!customerForm.name || !customerForm.email) {
-//       alert('Name and email are required!');
-//       return false;
-//     }
-
-//     // DB customers use string ids; generate a stable temporary id for client-side entries
-//     const newCustomer = {
-//       id: String(Date.now()),
-//       ...customerForm,
-//       createdAt: new Date().toISOString().split('T')[0]
-//     };
-
-//     setCustomers(prev => [...prev, newCustomer]);
-//     setSelectedCustomer(newCustomer);
-//     setUserModalMode(null);
-//     return true;
-//   };
-
-//   const handleEditCustomer = (customerForm) => {
-//     if (!selectedCustomer || !customerForm.name || !customerForm.email) {
-//       alert('Name and email are required!');
-//       return false;
-//     }
-
-//     const updatedCustomer = {
-//       ...selectedCustomer,
-//       ...customerForm
-//     };
-
-//     setCustomers(prev => prev.map(c => c.id === selectedCustomer.id ? updatedCustomer : c));
-//     setSelectedCustomer(updatedCustomer);
-//     setUserModalMode(null);
-//     return true;
-//   };
-
-
-    const handleCreateCustomer = async (customerForm) => {
+  // Customer operations (server actions)
+  const handleCreateCustomer = async (customerForm) => {
     if (!customerForm.name || !customerForm.email) {
       alert('Name and email are required!');
       return false;
@@ -163,23 +135,85 @@ const SalesClientPage = ({ products: initialProducts = [], initialCustomers = []
       return false;
     }
   };
-  // Process sale
-  const processSale = (paymentMethod, amountPaid, customTransaction = null) => {
+
+  // Persist sale to DB via server action and update UI
+  const persistSale = async (transaction) => {
+    // Build saleData in shape expected by your server action
+    const saleData = {
+      items: (transaction.items || []).map(it => ({
+        productId: it.productId || it.id || undefined,
+        title: it.title ?? it.name ?? "",
+        quantity: Number(it.quantity || 1),
+        price: Number(it.salePrice ?? it.price ?? it.itemPrice ?? 0),
+        originalItemPrice: Number(it.originalItemPrice ?? it.itemPrice ?? 0),
+        originalPurchasePrice: Number(it.originalPurchasePrice ?? it.purchasePrice ?? 0),
+      })),
+      subtotal: Number(transaction.subtotal || 0),
+      tax: Number(transaction.tax || 0),
+      total: Number(transaction.total || 0),
+      paymentMethod: transaction.paymentMethod || "cash",
+      amountPaid: Number(transaction.amountPaid || 0),
+      change: Number(transaction.change || 0),
+      customer: transaction.customer ? {
+        id: transaction.customer.id,
+        name: transaction.customer.name,
+        email: transaction.customer.email,
+        phone: transaction.customer.phone,
+        address: transaction.customer.address,
+      } : undefined,
+      notes: transaction.notes || undefined,
+      // sellerId: optionally pass here if you cannot resolve from session on server
+    };
+
+    const saved = await createSaleAction(saleData);
+    return saved;
+  };
+
+  // Process sale (now async): either accept a customTransaction (constructed by CartSection)
+  // or use cart state to build the transaction.
+  const processSale = async (paymentMethod, amountPaid, customTransaction = null) => {
+    // If a custom transaction was provided (CartSection builds this), persist it
     if (customTransaction) {
-      setSalesHistory([customTransaction, ...salesHistory]);
-      setLastTransaction(customTransaction);
-      setCart([]);
-      setSelectedCustomer(null);
-      setShowReceipt(true);
-      return;
+      try {
+        const savedSale = await persistSale(customTransaction);
+
+        // create a UI-friendly transaction object (timestamp etc)
+        const uiTx = {
+          id: savedSale.id,
+          timestamp: savedSale.createdAt ? new Date(savedSale.createdAt).toLocaleString() : new Date().toLocaleString(),
+          items: savedSale.items,
+          subtotal: savedSale.subtotal,
+          tax: savedSale.tax,
+          total: savedSale.total,
+          paymentMethod: savedSale.paymentMethod,
+          amountPaid: savedSale.amountPaid,
+          change: savedSale.change,
+          customer: savedSale.customer,
+          sellerId: savedSale.sellerId,
+        };
+
+        setSalesHistory(prev => [uiTx, ...prev]);
+        setLastTransaction(uiTx);
+        setCart([]);
+        setSelectedCustomer(null);
+        setShowReceipt(true);
+        return;
+      } catch (err) {
+        console.error("Failed to persist custom transaction:", err);
+        alert("Failed to save transaction. It will remain local.");
+        // fallback to local behavior below
+      }
     }
 
+    // Non-custom: build transaction from current cart
     if (cart.length === 0) {
       alert('Cart is empty!');
       return;
     }
 
-    const total = calculateTotal();
+    const subtotal = calculateSubtotal();
+    const tax = calculateTax(subtotal);
+    const total = subtotal + tax;
     const paid = parseFloat(amountPaid) || 0;
 
     if (paymentMethod === 'cash' && paid < total) {
@@ -190,21 +224,58 @@ const SalesClientPage = ({ products: initialProducts = [], initialCustomers = []
     const transaction = {
       id: Date.now(),
       timestamp: new Date().toLocaleString(),
-      items: [...cart],
-      subtotal: calculateSubtotal(),
-      tax: calculateTax(calculateSubtotal()),
-      total: total,
-      paymentMethod: paymentMethod,
+      items: cart.map(it => ({
+        productId: it.id || undefined,
+        title: it.title ?? it.name ?? "",
+        quantity: it.quantity,
+        price: it.itemPrice ?? 0,
+        originalItemPrice: it.itemPrice ?? 0,
+        originalPurchasePrice: it.purchasePrice ?? 0,
+        salePrice: it.salePrice ?? it.itemPrice ?? 0,
+      })),
+      subtotal,
+      tax,
+      total,
+      paymentMethod,
       amountPaid: paymentMethod === 'cash' ? paid : total,
-      change: paymentMethod === 'cash' ? calculateChange(amountPaid) : 0,
-      customer: selectedCustomer || undefined
+      change: paymentMethod === 'cash' ? Math.max(0, paid - total) : 0,
+      customer: selectedCustomer || undefined,
     };
 
-    setSalesHistory([transaction, ...salesHistory]);
-    setLastTransaction(transaction);
-    setCart([]);
-    setSelectedCustomer(null);
-    setShowReceipt(true);
+    // persist now
+    try {
+      const savedSale = await persistSale(transaction);
+      const uiTx = {
+        id: savedSale.id,
+        timestamp: savedSale.createdAt ? new Date(savedSale.createdAt).toLocaleString() : new Date().toLocaleString(),
+        items: savedSale.items,
+        subtotal: savedSale.subtotal,
+        tax: savedSale.tax,
+        total: savedSale.total,
+        paymentMethod: savedSale.paymentMethod,
+        amountPaid: savedSale.amountPaid,
+        change: savedSale.change,
+        customer: savedSale.customer,
+        sellerId: savedSale.sellerId,
+      };
+
+      setSalesHistory(prev => [uiTx, ...prev]);
+      setLastTransaction(uiTx);
+      setCart([]);
+      setSelectedCustomer(null);
+      setShowReceipt(true);
+      return;
+    } catch (err) {
+      console.error("Failed to persist sale:", err);
+      alert("Failed to save transaction. It will remain local.");
+
+      // fallback: keep existing behavior (store locally)
+      setSalesHistory(prev => [transaction, ...prev]);
+      setLastTransaction(transaction);
+      setCart([]);
+      setSelectedCustomer(null);
+      setShowReceipt(true);
+    }
   };
 
   return (
@@ -218,7 +289,7 @@ const SalesClientPage = ({ products: initialProducts = [], initialCustomers = []
       </h1>
 
       <div className="sales-content">
-        <ProductsSection 
+        <ProductsSection
           products={products}
           addToCart={addToCart}
         />
@@ -235,13 +306,13 @@ const SalesClientPage = ({ products: initialProducts = [], initialCustomers = []
           calculateTax={calculateTax}
           calculateTotal={calculateTotal}
           calculateChange={calculateChange}
-          processSale={processSale}
+          processSale={processSale} // now async; CartSection does not need to await
         />
       </div>
 
       <SalesHistory salesHistory={salesHistory} />
 
-      <QuickStats 
+      <QuickStats
         salesHistory={salesHistory}
         customers={customers}
       />

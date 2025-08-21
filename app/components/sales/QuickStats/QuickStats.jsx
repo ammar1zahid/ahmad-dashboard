@@ -3,46 +3,55 @@
 import React from 'react';
 import './QuickStats.css';
 
-const QuickStats = ({ salesHistory, customers }) => {
-  // Calculate stats
-  const totalRevenue = salesHistory.reduce((sum, sale) => sum + sale.total, 0);
+const formatCurrency = (amount) =>
+  `Rs${Number(amount || 0).toFixed(2)}`;
+
+const QuickStats = ({ salesHistory = [], customers = [] }) => {
+  // Ensure numeric coercion for totals
+  const totalRevenue = salesHistory.reduce((sum, sale) => sum + Number(sale.total || 0), 0);
   const totalTransactions = salesHistory.length;
   const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
-  
-  // Today's stats
+
+  // Today's stats - handle timestamp or createdAt
   const today = new Date().toDateString();
-  const todaysSales = salesHistory.filter(sale => 
-    new Date(sale.timestamp).toDateString() === today
-  );
-  const todaysRevenue = todaysSales.reduce((sum, sale) => sum + sale.total, 0);
+  const todaysSales = salesHistory.filter(sale => {
+    const ts = sale.timestamp || sale.createdAt || sale.createdAtString;
+    if (!ts) return false;
+    return new Date(ts).toDateString() === today;
+  });
+  const todaysRevenue = todaysSales.reduce((sum, sale) => sum + Number(sale.total || 0), 0);
   const todaysTransactions = todaysSales.length;
 
   // Most popular payment method
   const paymentMethods = salesHistory.reduce((acc, sale) => {
-    acc[sale.paymentMethod] = (acc[sale.paymentMethod] || 0) + 1;
+    const method = (sale.paymentMethod || 'unknown').toString();
+    acc[method] = (acc[method] || 0) + 1;
     return acc;
   }, {});
-  
-  const mostPopularPayment = Object.entries(paymentMethods).length > 0 
-    ? Object.entries(paymentMethods).sort(([,a], [,b]) => b - a)[0][0]
+
+  const mostPopularPayment = Object.entries(paymentMethods).length > 0
+    ? Object.entries(paymentMethods).sort(([, a], [, b]) => b - a)[0][0]
     : 'N/A';
 
-  // Best selling items
+  // Best selling items — be resilient about item shape
   const itemSales = salesHistory.reduce((acc, sale) => {
-    sale.items.forEach(item => {
-      acc[item.name] = (acc[item.name] || 0) + item.quantity;
+    (sale.items || []).forEach(item => {
+      // Prefer title, then name, then productId as key
+      const key = (item.title || item.name || item.productId || 'Unknown item').toString();
+      const qty = Number(item.quantity || item.qty || 0);
+      acc[key] = (acc[key] || 0) + qty;
     });
     return acc;
   }, {});
 
   const bestSellingItem = Object.entries(itemSales).length > 0
-    ? Object.entries(itemSales).sort(([,a], [,b]) => b - a)[0][0]
+    ? Object.entries(itemSales).sort(([, a], [, b]) => b - a)[0][0]
     : 'No items sold';
 
   const stats = [
     {
       title: 'Total Revenue',
-      value: `$${totalRevenue.toFixed(2)}`,
+      value: formatCurrency(totalRevenue),
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="12" y1="1" x2="12" y2="23"/>
@@ -53,8 +62,8 @@ const QuickStats = ({ salesHistory, customers }) => {
       subtitle: `${totalTransactions} total transactions`
     },
     {
-      title: 'Today\'s Revenue',
-      value: `$${todaysRevenue.toFixed(2)}`,
+      title: "Today's Revenue",
+      value: formatCurrency(todaysRevenue),
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -68,7 +77,7 @@ const QuickStats = ({ salesHistory, customers }) => {
     },
     {
       title: 'Average Sale',
-      value: `$${averageTransaction.toFixed(2)}`,
+      value: formatCurrency(averageTransaction),
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
@@ -93,7 +102,9 @@ const QuickStats = ({ salesHistory, customers }) => {
     },
     {
       title: 'Popular Payment',
-      value: mostPopularPayment.charAt(0).toUpperCase() + mostPopularPayment.slice(1),
+      value: typeof mostPopularPayment === 'string'
+        ? (mostPopularPayment === 'N/A' ? 'N/A' : mostPopularPayment.charAt(0).toUpperCase() + mostPopularPayment.slice(1))
+        : String(mostPopularPayment),
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
@@ -129,7 +140,7 @@ const QuickStats = ({ salesHistory, customers }) => {
           Quick Stats
         </h2>
       </div>
-      
+
       <div className="quick-stats-grid">
         {stats.map((stat, index) => (
           <div key={index} className={`quick-stats-card ${stat.color}`}>
