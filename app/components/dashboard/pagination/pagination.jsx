@@ -23,21 +23,33 @@ const Pagination = ({ count }) => {
     replace(`${pathname}?${params}`);
   };
 
+  const totalPages = Math.ceil(count / ITEM_PER_PAGE);
+  const currentPage = parseInt(page);
+
   return (
     <div className={styles.container}>
       <button
-        className={styles.button}
+        className={`${styles.button} ${styles.prevButton}`}
         disabled={!hasPrev}
         onClick={() => handleChangePage("prev")}
       >
+        <span className={styles.icon}>←</span>
         Previous
       </button>
+      
+      <div className={styles.pageInfo}>
+        <span className={styles.pageText}>
+          Page <span className={styles.currentPage}>{currentPage}</span> of {totalPages}
+        </span>
+      </div>
+
       <button
-        className={styles.button}
+        className={`${styles.button} ${styles.nextButton}`}
         disabled={!hasNext}
         onClick={() => handleChangePage("next")}
       >
         Next
+        <span className={styles.icon}>→</span>
       </button>
     </div>
   );

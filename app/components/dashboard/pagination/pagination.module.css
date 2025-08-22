@@ -1,14 +1,105 @@
-.container{
-  padding: 10px;
+.container {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
-.button{
-  padding: 5px 10px;
+.button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  justify-content: center;
 }
 
-.button:disabled{
+.button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.button:disabled {
+  background: #f9fafb;
+  color: #9ca3af;
+  border-color: #e5e7eb;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.prevButton .icon {
+  order: -1;
+}
+
+.nextButton .icon {
+  order: 1;
+}
+
+.icon {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.button:hover:not(:disabled) .icon {
+  transform: scale(1.1);
+}
+
+.pageInfo {
+  flex: 1;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.pageText {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.currentPage {
+  color: #374151;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .container {
+    max-width: 100%;
+    padding: 16px 0;
+  }
+  
+  .button {
+    min-width: 80px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .pageText {
+    font-size: 13px;
+  }
+  
+  .currentPage {
+    font-size: 15px;
+  }
 }

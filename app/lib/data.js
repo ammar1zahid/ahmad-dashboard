@@ -355,6 +355,86 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
 };
 
 
+// fetch sales for a specific customer
+export const fetchSalesByCustomer = async (
+  customerId,
+  { q = "", page = 1, limit = 20, sellerId = null } = {}
+) => {
+  try {
+    if (!customerId) return { count: 0, sales: [] };
+
+    await connect();
+
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    // restrict to this customer (customer.id is stored as ObjectId in the doc)
+    filter["customer.id"] = customerId;
+
+    if (sellerId) filter.sellerId = sellerId;
+
+    if (q) {
+      const regex = new RegExp(String(q), "i");
+      filter.$or = [
+        { "customer.name": { $regex: regex } },
+        { paymentMethod: { $regex: regex } },
+        { notes: { $regex: regex } }
+      ];
+    }
+
+    const count = await Sale.countDocuments(filter);
+    const rows = await Sale.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+
+    const data = rows.map(s => {
+      const items = (s.items || []).map(it => ({
+        productId: it.productId ? String(it.productId) : undefined,
+        title: it.title ?? "",
+        quantity: Number(it.quantity ?? 0),
+        price: Number(it.price ?? 0),
+        originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+        originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
+      }));
+
+      const customer = s.customer
+        ? {
+            id: s.customer.id ? String(s.customer.id) : (s.customer._id ? String(s.customer._id) : undefined),
+            name: s.customer.name ?? "",
+            email: s.customer.email ?? "",
+            phone: s.customer.phone ?? "",
+            address: s.customer.address ?? "",
+          }
+        : undefined;
+
+      return {
+        id: s._id ? String(s._id) : (s.id ? String(s.id) : undefined),
+        items,
+        subtotal: Number(s.subtotal ?? 0),
+        tax: Number(s.tax ?? 0),
+        total: Number(s.total ?? 0),
+        paymentMethod: s.paymentMethod ?? "cash",
+        amountPaid: Number(s.amountPaid ?? 0),
+        change: Number(s.change ?? 0),
+        status: s.status ?? "completed",
+        customer,
+        sellerId: s.sellerId ? String(s.sellerId) : undefined,
+        createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
+        updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
+        notes: s.notes ?? undefined,
+      };
+    });
+
+    return { count, sales: data };
+  } catch (err) {
+    console.error("fetchSalesByCustomer error:", err);
+    return { count: 0, sales: [] };
+  }
+};
+
+
+
 // Update sale (limited fields)
 export const updateSale = async (id, updateData) => {
   try {

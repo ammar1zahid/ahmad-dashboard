@@ -32,7 +32,7 @@ async function TransactionsPage({ searchParams }) {
     const limit = Number(params?.limit) || 10;
 
     const { count = 0, sales = [] } = (await fetchSales({ q, page, limit })) || {};
-
+    
     return (
       <div className={styles.container}>
         <div className={styles.top}>

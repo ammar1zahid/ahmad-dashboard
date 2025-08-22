@@ -77,6 +77,11 @@ async function CustomersPage({ searchParams }) {
                             Delete
                           </button>
                         </form>
+                            <Link href={`/dashboard/customers/transactions/${id}`}>
+                          <button className={`${styles.button} ${styles.view}`}>
+                            View Transactions
+                          </button>
+                        </Link>
                       </div>
                     </td>
                   </tr>

@@ -9,70 +9,18 @@ import {
   MdShoppingBag,
   MdAttachMoney,
   MdPeople,
-  MdOutlineSettings,
-  MdHelpCenter,
   MdLogout,
-  MdGroups ,
-  MdHistory
+  MdGroups,
+  MdHistory,
+  MdPerson
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import { useSession, signOut } from "next-auth/react";
 
-const menuItems = [
-  {
-    title: "Pages",
-    list: [
-      { title: "Dashboard", path: "/dashboard", icon: <MdDashboard /> },
-      {
-        title: "Users",
-        path: "/dashboard/users",
-        icon: <MdSupervisedUserCircle />,
-      },
-      {
-        title: "Products",
-        path: "/dashboard/products",
-        icon: <MdShoppingBag />,
-      },
-      {
-        title: "Customers",
-        path: "/dashboard/customers",
-        icon: <MdGroups  />,
-      },
-    
-    ],
-  },
-  {
-    title: "Sales",
-    list: [
-      {
-        title: "Sales",
-        path: "/dashboard/sales",
-        icon: <MdAttachMoney />,
-      },
-      {
-        title: "Transactions",
-        path: "/dashboard/transactions",
-        icon: <MdHistory />,
-      },
-      { title: "Teams", path: "/dashboard/teams", icon: <MdPeople /> },
-    ],
-  },
-  {
-    title: "User",
-    list: [
-      {
-        title: "Settings",
-        path: "/dashboard/settings",
-        icon: <MdOutlineSettings />,
-      },
-      { title: "Help", path: "/dashboard/help", icon: <MdHelpCenter /> },
-    ],
-  },
-];
-
 export default function Sidebar() {
   const { data: session } = useSession();
   const user = session?.user;
+
   const handleSignOut = async () => {
     try {
       await signOut({ callbackUrl: "/login" });
@@ -80,6 +28,59 @@ export default function Sidebar() {
       console.error("signOut error:", err);
     }
   };
+
+  // Build menu dynamically so we can inject user id into profile link
+  const menuItems = [
+    {
+      title: "Pages",
+      list: [
+        { title: "Dashboard", path: "/dashboard", icon: <MdDashboard /> },
+        {
+          title: "Users",
+          path: "/dashboard/users",
+          icon: <MdSupervisedUserCircle />,
+        },
+        {
+          title: "Products",
+          path: "/dashboard/products",
+          icon: <MdShoppingBag />,
+        },
+        {
+          title: "Customers",
+          path: "/dashboard/customers",
+          icon: <MdGroups />,
+        },
+      ],
+    },
+    {
+      title: "Sales",
+      list: [
+        { title: "Sales", path: "/dashboard/sales", icon: <MdAttachMoney /> },
+        {
+          title: "Transactions",
+          path: "/dashboard/transactions",
+          icon: <MdHistory />,
+        },
+        { title: "Analytics", path: "/dashboard/analytics", icon: <MdPeople /> },
+      ],
+    },
+    {
+      title: "User",
+      list: [
+        // {
+        //   title: "Settings",
+        //   path: "/dashboard/settings",
+        //   icon: <MdOutlineSettings />,
+        // },
+        // { title: "Help", path: "/dashboard/help", icon: <MdHelpCenter /> },
+        {
+          title: "Profile",
+          path: `/dashboard/users/${user?.id || ""}`,
+          icon: <MdPerson />,
+        },
+      ],
+    },
+  ];
 
   return (
     <div className={styles.container}>
