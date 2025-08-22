@@ -162,6 +162,7 @@ const SalesClientPage = ({
         address: transaction.customer.address,
       } : undefined,
       notes: transaction.notes || undefined,
+      status: transaction.status || "completed", 
       // sellerId: optionally pass here if you cannot resolve from session on server
     };
 

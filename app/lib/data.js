@@ -277,6 +277,7 @@ export const fetchSale = async (id) => {
       createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
       updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
       notes: s.notes || '',
+      status: s.status || 'completed',
     };
   } catch (err) {
     console.error("fetchSale error:", err);

@@ -38,7 +38,6 @@ const CartSection = ({
 
   // Calculate unit price (units * itemsPerUnit * itemPrice)
   const calculateUnitPrice = (item) => {
-  
     const itemsPerUnit = Number(item.itemsPerUnit) || 0;
     const itemPrice = Number(item.itemPrice) || 0;
     return itemsPerUnit * itemPrice;
@@ -68,7 +67,32 @@ const CartSection = ({
     return Math.max(0, paid - total);
   };
 
-  const handlePaymentSubmit = () => {
+  // Derived values
+  const subtotal = Number(calculateSubtotalWithSalePrices() || 0);
+  const tax = Number(calculateTaxWithSalePrices(subtotal) || 0);
+  const total = Number(calculateTotalWithSalePrices() || 0);
+  const change = paymentMethod === 'cash' ? Number(calculateChangeWithSalePrices(amountPaid) || 0) : 0;
+  const paid = parseFloat(amountPaid) || 0;
+
+  // derived: is cash payment sufficient?
+  const isCashSufficient = () => {
+    if (paymentMethod !== 'cash') return true;
+    return paid >= total;
+  };
+
+  // pending button enabled only when amount paid < total AND customer selected AND cart not empty
+  const isPendingAllowed = () => {
+    return cart.length > 0 && paid < total && !!selectedCustomer;
+  };
+
+  // handlePaymentSubmit now accepts desiredStatus ('completed' or 'pending')
+  const handlePaymentSubmit = (desiredStatus = 'completed') => {
+    // If pending, ensure there's a selected customer (defensive)
+    if (desiredStatus === 'pending' && !selectedCustomer) {
+      alert('Please select a customer before saving a sale as pending.');
+      return;
+    }
+
     // Create cart with sale prices for processing
     const cartWithSalePrices = cart.map(item => ({
       ...item,
@@ -79,24 +103,32 @@ const CartSection = ({
     }));
     
     // Override the processSale to use our calculations
-    processSaleWithCustomPrices(paymentMethod, amountPaid, cartWithSalePrices);
+    processSaleWithCustomPrices(paymentMethod, amountPaid, cartWithSalePrices, desiredStatus);
+    // Only clear UI payment fields for 'completed' or 'pending' as appropriate
     setAmountPaid('');
     setSalePrices({});
   };
 
-  const processSaleWithCustomPrices = (paymentMethod, amountPaid, cartWithSalePrices) => {
+  const processSaleWithCustomPrices = (paymentMethod, amountPaid, cartWithSalePrices, status = 'completed') => {
     if (cartWithSalePrices.length === 0) {
       alert('Cart is empty!');
       return;
     }
 
-    const subtotal = calculateSubtotalWithSalePrices();
-    const tax = calculateTaxWithSalePrices(subtotal);
-    const total = subtotal + tax;
-    const paid = parseFloat(amountPaid) || 0;
+    const subtotalLocal = cartWithSalePrices.reduce((sum, item) => sum + (Number(item.salePrice || 0) * item.quantity), 0);
+    const taxLocal = subtotalLocal * 0.08;
+    const totalLocal = subtotalLocal + taxLocal;
+    const paidLocal = parseFloat(amountPaid) || 0;
 
-    if (paymentMethod === 'cash' && paid < total) {
-      alert('Insufficient payment amount!');
+    // if user clicks "Complete Sale" and payment is insufficient, block (same as before)
+    if (status === 'completed' && paymentMethod === 'cash' && paidLocal < totalLocal) {
+      alert('Insufficient payment amount for a completed sale!');
+      return;
+    }
+
+    // if user clicks "Pending" ensure customer exists (defensive)
+    if (status === 'pending' && !selectedCustomer) {
+      alert('Pending sales require a selected customer.');
       return;
     }
 
@@ -105,32 +137,21 @@ const CartSection = ({
       timestamp: new Date().toLocaleString(),
       items: cartWithSalePrices.map(item => ({
         ...item,
-        price: getSalePrice(item), // Use sale price as the transaction price
-        salePrice: getSalePrice(item)
+        price: Number(item.salePrice || 0), // Use sale price as the transaction price
+        salePrice: Number(item.salePrice || 0)
       })),
-      subtotal: subtotal,
-      tax: tax,
-      total: total,
+      subtotal: subtotalLocal,
+      tax: taxLocal,
+      total: totalLocal,
       paymentMethod: paymentMethod,
-      amountPaid: paymentMethod === 'cash' ? paid : total,
-      change: paymentMethod === 'cash' ? calculateChangeWithSalePrices(amountPaid) : 0,
-      customer: selectedCustomer || undefined
+      amountPaid: paymentMethod === 'cash' ? paidLocal : totalLocal,
+      change: paymentMethod === 'cash' ? Math.max(0, paidLocal - totalLocal) : 0,
+      customer: selectedCustomer || undefined,
+      status // attach status: 'completed' | 'pending'
     };
 
-    // Call the parent's processSale but with our custom transaction
+    // Call the parent's processSale with our custom transaction (parent persists)
     processSale(paymentMethod, amountPaid, transaction);
-  };
-
-  const subtotal = Number(calculateSubtotalWithSalePrices() || 0);
-  const tax = Number(calculateTaxWithSalePrices(subtotal) || 0);
-  const total = Number(calculateTotalWithSalePrices() || 0);
-  const change = paymentMethod === 'cash' ? Number(calculateChangeWithSalePrices(amountPaid) || 0) : 0;
-
-  // derived: is cash payment sufficient?
-  const isCashSufficient = () => {
-    if (paymentMethod !== 'cash') return true;
-    const paid = parseFloat(amountPaid) || 0;
-    return paid >= total;
   };
 
   return (
@@ -138,7 +159,7 @@ const CartSection = ({
       <div className="cart-card">
         <div className="cart-header">
           <h2 className="cart-title">
-            <svg className="cart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg style={{ marginRight: 8 }} className="cart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="9" cy="21" r="1"/>
               <circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -147,12 +168,6 @@ const CartSection = ({
           </h2>
           {cart.length > 0 && (
             <button className="cart-clear-btn" onClick={clearCart} type="button">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="3,6 5,6 21,6"/>
-                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
               Clear
             </button>
           )}
@@ -162,11 +177,6 @@ const CartSection = ({
         <div className="cart-items">
           {cart.length === 0 ? (
             <div className="cart-empty">
-              <svg className="cart-empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                <circle cx="9" cy="21" r="1"/>
-                <circle cx="20" cy="21" r="1"/>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-              </svg>
               <p>Your cart is empty</p>
               <p className="cart-empty-subtitle">Add products to get started</p>
             </div>
@@ -229,10 +239,7 @@ const CartSection = ({
                       type="button"
                       aria-label={`Remove ${item.title ?? item.name}`}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                      </svg>
+                      Remove
                     </button>
                   </div>
                 </div>
@@ -342,17 +349,26 @@ const CartSection = ({
               </div>
             )}
 
-            <button 
-              className="cart-checkout-btn"
-              onClick={handlePaymentSubmit}
-              disabled={paymentMethod === 'cash' && !isCashSufficient()}
-              type="button"
-            >
-              <svg className="cart-checkout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20,6 9,17 4,12"/>
-              </svg>
-              Complete Sale
-            </button>
+            <div className="cart-payment-buttons">
+              <button 
+                className="cart-checkout-btn"
+                onClick={() => handlePaymentSubmit('completed')}
+                disabled={paymentMethod === 'cash' && !isCashSufficient()}
+                type="button"
+              >
+                Complete Sale
+              </button>
+
+              <button
+                className="cart-pending-btn"
+                onClick={() => handlePaymentSubmit('pending')}
+                disabled={!isPendingAllowed()}
+                type="button"
+                title={selectedCustomer ? '' : 'Pending sales require a selected customer'}
+              >
+                Save as Pending
+              </button>
+            </div>
           </div>
         )}
       </div>

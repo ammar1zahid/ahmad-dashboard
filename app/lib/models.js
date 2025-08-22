@@ -69,6 +69,7 @@ const saleSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ["cash","card","digital","other"], default: "cash" },
   amountPaid: { type: Number, min: 0, default: 0 },
   change: { type: Number, min: 0, default: 0 },
+  status: { type: String, enum: ["completed", "pending", "cancelled"],   default: "completed" },
 
   // Snapshot of customer at time of sale (optional)
   customer: {

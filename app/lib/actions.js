@@ -384,6 +384,7 @@ export async function createSaleFromModal(saleData = {}) {
       customer: saleData.customer || undefined,
       sellerId: sellerId ? sellerId : undefined,
       notes: saleData.notes || undefined,
+       status: saleData.status || "completed",
     });
 
     const saved = await newSale.save();
@@ -442,93 +443,153 @@ export async function createSaleFromModal(saleData = {}) {
 
 
 // Update existing sale (server action) — expects FormData when used as <form action={updateSaleFromModal}>
+
+
 // export async function updateSaleFromModal(formData) {
 //   "use server";
-//   // formData is a FormData object when coming from <form action=...>
-//   const id = formData instanceof FormData ? formData.get("id") : formData?.id;
+//   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
+//   const { id, paymentMethod, amountPaid, notes } = data;
 //   if (!id) throw new Error("Sale id is required");
-
-//   // Extract fields you allow to update
-//   const paymentMethod = formData.get("paymentMethod") || undefined;
-//   const amountPaidRaw = formData.get("amountPaid");
-//   const amountPaid = amountPaidRaw !== null && amountPaidRaw !== "" ? Number(amountPaidRaw) : undefined;
-//   const notes = formData.get("notes") || undefined;
 
 //   const updateData = {};
 //   if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
-//   if (!Number.isNaN(amountPaid) && amountPaid !== undefined) updateData.amountPaid = amountPaid;
+//   if (amountPaid !== undefined && amountPaid !== "") updateData.amountPaid = Number(amountPaid);
 //   if (notes !== undefined) updateData.notes = notes;
 
 //   try {
 //     await connect();
-
 //     const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
 //     if (!updated) throw new Error("Sale not found");
-
-//     // revalidate sales list page if available
 //     try {
 //       const { revalidatePath } = await import("next/cache");
-//       revalidatePath("/sales");
+//       revalidatePath("/dashboard/transactions");
+//       revalidatePath(`/dashboard/transactions/${id}`);
 //     } catch (e) {
 //       // ignore if revalidate not available
 //     }
-
-//     // Serialize same as fetchSale to return safe plain object
-//     return {
-//       id: updated._id.toString(),
-//       items: (updated.items || []).map(it => ({
-//         _id: it._id?.toString?.(),
-//         productId: it.productId?.toString?.(),
-//         title: it.title,
-//         quantity: it.quantity,
-//         price: it.price,
-//         originalItemPrice: it.originalItemPrice
-//       })),
-//       subtotal: updated.subtotal,
-//       tax: updated.tax,
-//       total: updated.total,
-//       paymentMethod: updated.paymentMethod,
-//       amountPaid: updated.amountPaid,
-//       change: updated.change,
-//       customer: updated.customer,
-//       sellerId: updated.sellerId ? String(updated.sellerId) : undefined,
-//       createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
-//       updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
-//       notes: updated.notes,
-//     };
+//     return true;
 //   } catch (err) {
-//     console.error("updateSaleFromModal error:", err);
+//     console.error(err);
 //     throw new Error("Failed to update sale!");
 //   }
 // }
 
+
+
 export async function updateSaleFromModal(formData) {
-  "use server";
+  // normalize incoming data whether it's FormData or plain object
   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
-  const { id, paymentMethod, amountPaid, notes } = data;
+  const {
+    id,
+    paymentMethod,
+    amountPaid: amountPaidRaw,
+    notes,
+    status: requestedStatus,
+    totalAmount: totalAmountRaw
+  } = data;
+
   if (!id) throw new Error("Sale id is required");
 
+  // parse numeric inputs (if provided)
+  const totalNum = totalAmountRaw !== undefined && totalAmountRaw !== "" ? Number(totalAmountRaw) : undefined;
+  const amountPaidNum = amountPaidRaw !== undefined && amountPaidRaw !== "" ? Number(amountPaidRaw) : undefined;
+
+  if (totalNum !== undefined && Number.isNaN(totalNum)) throw new Error("Invalid totalAmount");
+  if (amountPaidNum !== undefined && Number.isNaN(amountPaidNum)) throw new Error("Invalid amountPaid");
+
+  // Decide final status:
+  // - If both amountPaid and total are provided:
+  //     - amountPaid >= total  -> force "completed"
+  //     - amountPaid < total   -> force "pending"
+  // - Else if requestedStatus is valid -> use requestedStatus
+  // - Else do not change status (leave undefined so we don't overwrite)
+  const allowedStatuses = ["completed", "pending", "cancelled"];
+  let finalStatus = undefined;
+
+  if (typeof amountPaidNum === "number" && typeof totalNum === "number") {
+    finalStatus = amountPaidNum >= totalNum ? "completed" : "pending";
+  } else if (typeof requestedStatus === "string" && allowedStatuses.includes(requestedStatus)) {
+    finalStatus = requestedStatus;
+  }
+
+  // Build update object - include only provided/needed fields
   const updateData = {};
   if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
-  if (amountPaid !== undefined && amountPaid !== "") updateData.amountPaid = Number(amountPaid);
+  if (amountPaidNum !== undefined) updateData.amountPaid = amountPaidNum;
   if (notes !== undefined) updateData.notes = notes;
+  if (finalStatus !== undefined) updateData.status = finalStatus;
+  if (amountPaidNum !== undefined && totalNum !== undefined) {
+    updateData.change = Math.max(0, amountPaidNum - totalNum);
+  }
 
-  try {
-    await connect();
-    const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
-    if (!updated) throw new Error("Sale not found");
+  // If nothing to update, return early (but revalidate to be safe)
+  if (Object.keys(updateData).length === 0) {
     try {
       const { revalidatePath } = await import("next/cache");
       revalidatePath("/dashboard/transactions");
       revalidatePath(`/dashboard/transactions/${id}`);
     } catch (e) {
-      // ignore if revalidate not available
+      // ignore
     }
-    return true;
-  } catch (err) {
-    console.error(err);
-    throw new Error("Failed to update sale!");
+    return { ok: true };
   }
+
+  // Persist update and return serialized plain object
+  await connect();
+  const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
+  if (!updated) throw new Error("Sale not found after update");
+
+  // Revalidate relevant pages
+  try {
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/dashboard/transactions");
+    revalidatePath(`/dashboard/transactions/${id}`);
+  } catch (e) {
+    // ignore if unavailable
+  }
+
+  // Serialize updated doc to plain JS (convert ObjectIds / Dates to primitives)
+  const items = Array.isArray(updated.items)
+    ? updated.items.map(it => ({
+        _id: it._id?.toString?.() || undefined,
+        productId: it.productId?.toString?.() || it.productId || undefined,
+        title: it.title || it.name || undefined,
+        quantity: typeof it.quantity === "number" ? it.quantity : Number(it.quantity || 0),
+        price: typeof it.price === "number" ? it.price : Number(it.price || 0),
+        originalItemPrice:
+          typeof it.originalItemPrice === "number"
+            ? it.originalItemPrice
+            : it.originalItemPrice
+            ? Number(it.originalItemPrice)
+            : undefined,
+      }))
+    : [];
+
+  const serialized = {
+    id: updated._id?.toString?.(),
+    items,
+    subtotal: typeof updated.subtotal === "number" ? updated.subtotal : Number(updated.subtotal || 0),
+    tax: typeof updated.tax === "number" ? updated.tax : Number(updated.tax || 0),
+    total: typeof updated.total === "number" ? updated.total : Number(updated.total || 0),
+    paymentMethod: updated.paymentMethod || "",
+    amountPaid: typeof updated.amountPaid === "number" ? updated.amountPaid : Number(updated.amountPaid || 0),
+    change: typeof updated.change === "number" ? updated.change : Number(updated.change || 0),
+    customer: updated.customer
+      ? {
+          id: updated.customer.id?.toString?.() || updated.customer.id || undefined,
+          name: updated.customer.name || "",
+          email: updated.customer.email || "",
+          phone: updated.customer.phone || ""
+        }
+      : null,
+    sellerId: updated.sellerId ? String(updated.sellerId) : undefined,
+    createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
+    updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
+    notes: updated.notes || "",
+    status: updated.status || "completed",
+  };
+
+  return serialized;
 }
 
 

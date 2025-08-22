@@ -33,6 +33,10 @@ const SingleTransactionPage = async (props) => {
   const customer = sale.customer ?? null;
   const notes = sale.notes ?? "";
   const items = sale.items || [];
+  const status = sale.status || "completed"; // Default to completed for backward compatibility
+
+  // Calculate remaining balance
+  const remainingBalance = Math.max(0, total - amountPaid);
 
   const totalItems = items.reduce(
     (sum, item) => sum + Number(item.quantity || 0),
@@ -69,7 +73,17 @@ const SingleTransactionPage = async (props) => {
     return methods[method] || { label: method, icon: "💰" };
   };
 
+  const getStatusDisplay = (status) => {
+    const statuses = {
+      completed: { label: "Completed", class: "completed" },
+      pending: { label: "Pending", class: "pending" },
+      cancelled: { label: "Cancelled", class: "cancelled" },
+    };
+    return statuses[status] || { label: status, class: "completed" };
+  };
+
   const paymentDisplay = getPaymentMethodDisplay(paymentMethod);
+  const statusDisplay = getStatusDisplay(status);
 
   return (
     <div className={styles.container}>
@@ -85,12 +99,27 @@ const SingleTransactionPage = async (props) => {
           <h1>Transaction Details</h1>
           <div className={styles.transactionId}>ID: {sid}</div>
         </div>
-        <div className={styles.statusBadge}>
-          <span className={styles.statusText}>Completed</span>
+        <div className={`${styles.statusBadge} ${styles[statusDisplay.class]}`}>
+          <span className={styles.statusText}>{statusDisplay.label}</span>
         </div>
       </div>
 
       <div className={styles.contentGrid}>
+        {/* Pending Balance Alert - Only show if status is pending and there's remaining balance */}
+        {status === "pending" && remainingBalance > 0 && (
+          <div className={styles.pendingBalanceCard}>
+            <h2>⚠️ Outstanding Balance</h2>
+            <div className={styles.balanceAlert}>
+              <div className={styles.balanceAmount}>
+                {formatCurrency(remainingBalance)}
+              </div>
+              <div className={styles.balanceText}>
+                Remaining balance to be paid
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         <div className={styles.summaryCard}>
           <h2>Transaction Summary</h2>
@@ -165,6 +194,14 @@ const SingleTransactionPage = async (props) => {
               <span>Total</span>
               <span>{formatCurrency(total)}</span>
             </div>
+            {remainingBalance > 0 && (
+              <div className={`${styles.breakdownRow} ${styles.remaining}`}>
+                <span>Remaining Balance</span>
+                <span className={styles.remainingAmount}>
+                  {formatCurrency(remainingBalance)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -302,6 +339,23 @@ const SingleTransactionPage = async (props) => {
           {/* Update form */}
           <form action={updateSaleFromModal} className={styles.editForm}>
             <input type="hidden" name="id" value={sid} />
+            <input type="hidden" name="totalAmount" value={total} />
+
+            <div className={styles.formGroup}>
+              <label htmlFor="status" className={styles.label}>
+                Transaction Status
+              </label>
+              <select
+                id="status"
+                name="status"
+                defaultValue={status}
+                className={styles.select}
+              >
+                <option value="completed">✅ Completed</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="cancelled">❌ Cancelled</option>
+              </select>
+            </div>
 
             <div className={styles.formGroup}>
               <label htmlFor="paymentMethod" className={styles.label}>
