@@ -323,7 +323,7 @@ export async function deleteCustomer(formData) {
 
 
 // ===========================
-// Customer Actions
+// Sales Actions
 // ===========================
 
 
@@ -439,64 +439,123 @@ export async function createSaleFromModal(saleData = {}) {
 }
 
 
-// Update existing sale (server action)
-export async function updateSaleFromModal(id, updateData = {}) {
+
+
+// Update existing sale (server action) — expects FormData when used as <form action={updateSaleFromModal}>
+// export async function updateSaleFromModal(formData) {
+//   "use server";
+//   // formData is a FormData object when coming from <form action=...>
+//   const id = formData instanceof FormData ? formData.get("id") : formData?.id;
+//   if (!id) throw new Error("Sale id is required");
+
+//   // Extract fields you allow to update
+//   const paymentMethod = formData.get("paymentMethod") || undefined;
+//   const amountPaidRaw = formData.get("amountPaid");
+//   const amountPaid = amountPaidRaw !== null && amountPaidRaw !== "" ? Number(amountPaidRaw) : undefined;
+//   const notes = formData.get("notes") || undefined;
+
+//   const updateData = {};
+//   if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
+//   if (!Number.isNaN(amountPaid) && amountPaid !== undefined) updateData.amountPaid = amountPaid;
+//   if (notes !== undefined) updateData.notes = notes;
+
+//   try {
+//     await connect();
+
+//     const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
+//     if (!updated) throw new Error("Sale not found");
+
+//     // revalidate sales list page if available
+//     try {
+//       const { revalidatePath } = await import("next/cache");
+//       revalidatePath("/sales");
+//     } catch (e) {
+//       // ignore if revalidate not available
+//     }
+
+//     // Serialize same as fetchSale to return safe plain object
+//     return {
+//       id: updated._id.toString(),
+//       items: (updated.items || []).map(it => ({
+//         _id: it._id?.toString?.(),
+//         productId: it.productId?.toString?.(),
+//         title: it.title,
+//         quantity: it.quantity,
+//         price: it.price,
+//         originalItemPrice: it.originalItemPrice
+//       })),
+//       subtotal: updated.subtotal,
+//       tax: updated.tax,
+//       total: updated.total,
+//       paymentMethod: updated.paymentMethod,
+//       amountPaid: updated.amountPaid,
+//       change: updated.change,
+//       customer: updated.customer,
+//       sellerId: updated.sellerId ? String(updated.sellerId) : undefined,
+//       createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
+//       updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
+//       notes: updated.notes,
+//     };
+//   } catch (err) {
+//     console.error("updateSaleFromModal error:", err);
+//     throw new Error("Failed to update sale!");
+//   }
+// }
+
+export async function updateSaleFromModal(formData) {
   "use server";
+  const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
+  const { id, paymentMethod, amountPaid, notes } = data;
   if (!id) throw new Error("Sale id is required");
+
+  const updateData = {};
+  if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
+  if (amountPaid !== undefined && amountPaid !== "") updateData.amountPaid = Number(amountPaid);
+  if (notes !== undefined) updateData.notes = notes;
 
   try {
     await connect();
-
     const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
     if (!updated) throw new Error("Sale not found");
-
     try {
       const { revalidatePath } = await import("next/cache");
-      revalidatePath("/sales");
-    } catch (e) { 
+      revalidatePath("/dashboard/transactions");
+      revalidatePath(`/dashboard/transactions/${id}`);
+    } catch (e) {
       // ignore if revalidate not available
-      }
-
-    return {
-      id: updated._id.toString(),
-      items: updated.items,
-      subtotal: updated.subtotal,
-      tax: updated.tax,
-      total: updated.total,
-      paymentMethod: updated.paymentMethod,
-      amountPaid: updated.amountPaid,
-      change: updated.change,
-      customer: updated.customer,
-      sellerId: updated.sellerId ? String(updated.sellerId) : undefined,
-      createdAt: updated.createdAt ? updated.createdAt.toISOString() : undefined,
-      updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
-      notes: updated.notes,
-    };
+    }
+    return true;
   } catch (err) {
-    console.error("updateSaleFromModal error:", err);
+    console.error(err);
     throw new Error("Failed to update sale!");
   }
 }
 
+
 // Delete sale (server action)
-export async function deleteSaleFromModal(id) {
+// app/lib/actions.js
+
+export async function deleteSaleFromModal(formData) {
   "use server";
+  const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
+  const id = data.id;
   if (!id) throw new Error("Sale id is required");
+
   try {
     await connect();
     await Sale.findByIdAndDelete(id);
-
+    // revalidate the correct path you use in your app:
     try {
       const { revalidatePath } = await import("next/cache");
-      revalidatePath("/sales");
-    } catch (e) 
-    {
-      console.log(" revalidatePath error: ",e);
+      revalidatePath("/dashboard/transactions"); // use the route you want refreshed
+    } catch (e) {
+      // ignore if revalidate not available
     }
-
     return true;
   } catch (err) {
-    console.error("deleteSaleFromModal error:", err);
+    console.error(err);
     throw new Error("Failed to delete sale!");
   }
 }
+
+

@@ -1,0 +1,724 @@
+/* singleTransaction.module.css */
+
+/* Following global CSS variables */
+:root {
+  --bg: #151c2c;
+  --bgSoft: #182237;
+  --text: white;
+  --textSoft: #b7bac1;
+  --accent: #3b82f6;
+  --accentHover: #2563eb;
+  --success: #10b981;
+  --successHover: #059669;
+  --danger: #ef4444;
+  --dangerHover: #dc2626;
+  --border: #334155;
+  --borderSoft: #475569;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--bg);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bgSoft);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px var(--shadow);
+  margin-bottom: 32px;
+  border: 1px solid var(--border);
+}
+
+.headerContent h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.transactionId {
+  font-size: 14px;
+  color: var(--textSoft);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  background: var(--bg);
+  padding: 4px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  border: 1px solid var(--border);
+}
+
+.statusBadge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Content Grid */
+.contentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+/* Card Base Styles */
+.summaryCard,
+.customerCard,
+.financialCard,
+.statsCard,
+.itemsCard,
+.timelineCard,
+.editCard {
+  background: var(--bgSoft);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summaryCard:hover,
+.customerCard:hover,
+.financialCard:hover,
+.statsCard:hover,
+.timelineCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px var(--shadow);
+}
+
+.summaryCard h2,
+.customerCard h2,
+.financialCard h2,
+.statsCard h2,
+.itemsCard h2,
+.timelineCard h2,
+.editCard h2 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 12px;
+}
+
+/* Summary Card */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.summaryItem {
+  text-align: center;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.summaryLabel {
+  display: block;
+  font-size: 14px;
+  color: var(--textSoft);
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summaryValue {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Customer Card */
+.customerInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.customerAvatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.customerDetails {
+  flex: 1;
+}
+
+.customerName {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.customerEmail,
+.customerPhone {
+  font-size: 14px;
+  color: var(--textSoft);
+  margin-bottom: 2px;
+}
+
+/* Financial Card */
+.financialBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+  color: var(--text);
+}
+
+.breakdownRow:last-child {
+  border-bottom: none;
+}
+
+.breakdownRow.total {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+  padding-top: 16px;
+  border-top: 2px solid var(--border);
+  margin-top: 8px;
+}
+
+/* Stats Card */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.statItem {
+  text-align: center;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--textSoft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* Items Card */
+.itemsCard {
+  grid-column: span 2;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bgSoft);
+}
+
+.itemsTable th {
+  background: var(--bg);
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.itemRow {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.itemRow:hover {
+  background: var(--bg);
+}
+
+.itemsTable td {
+  padding: 16px;
+  vertical-align: top;
+  color: var(--text);
+}
+
+.productCell {
+  min-width: 200px;
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.productName {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.productId {
+  font-size: 12px;
+  color: var(--textSoft);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.quantityCell {
+  text-align: center;
+}
+
+.quantityBadge {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.priceCell {
+  text-align: right;
+}
+
+.priceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.currentPrice {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.discount {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.originalPriceCell {
+  text-align: right;
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  color: var(--textSoft);
+  font-size: 14px;
+}
+
+.regularPrice {
+  color: var(--textSoft);
+  font-size: 14px;
+}
+
+.totalCell {
+  text-align: right;
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Timeline Card */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timelineItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.timelineIcon {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  background: var(--bgSoft);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+}
+
+.timelineContent {
+  flex: 1;
+}
+
+.timelineLabel {
+  font-size: 14px;
+  color: var(--textSoft);
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timelineValue {
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Edit Card & Forms */
+.editCard {
+  grid-column: span 2;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input,
+.select,
+.textarea {
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.formActions {
+  display: flex;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 2px solid var(--border);
+}
+
+.updateBtn {
+  flex: 1;
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.updateBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.4);
+}
+
+.deleteForm {
+  display: contents;
+}
+
+.deleteBtn {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: var(--dangerHover);
+  transform: translateY(-2px);
+}
+
+/* Standalone Delete Form Styles */
+.button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bgSoft);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  border-color: var(--borderSoft);
+}
+
+.button.delete {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.button.delete:hover {
+  background: var(--dangerHover);
+  border-color: var(--dangerHover);
+  box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.4);
+}
+
+/* Error Card */
+.errorCard {
+  background: var(--bgSoft);
+  border-radius: 16px;
+  padding: 48px;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px var(--shadow);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-left: 4px solid var(--danger);
+}
+
+.errorCard h2 {
+  color: var(--danger);
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+.errorCard p {
+  color: var(--textSoft);
+  font-size: 16px;
+  margin: 0;
+}
+
+/* EditTransactionForm specific styles */
+.editTransactionForm {
+  background: var(--bgSoft);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px var(--shadow);
+  border: 1px solid var(--border);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.editTransactionForm h2 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 12px;
+}
+
+/* DeleteSaleForm specific styles */
+.deleteSaleForm {
+  display: inline-block;
+}
+
+.deleteSaleForm .button.delete {
+  background: var(--danger);
+  color: white;
+  border: 2px solid var(--danger);
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.deleteSaleForm .button.delete:hover {
+  background: var(--dangerHover);
+  border-color: var(--dangerHover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px -2px rgba(239, 68, 68, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .itemsCard,
+  .editCard {
+    grid-column: span 1;
+  }
+  
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+  }
+  
+  .summaryCard,
+  .customerCard,
+  .financialCard,
+  .statsCard,
+  .itemsCard,
+  .timelineCard,
+  .editCard {
+    padding: 24px;
+  }
+  
+  .customerInfo {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .formActions {
+    flex-direction: column;
+  }
+  
+  .tableContainer {
+    font-size: 14px;
+  }
+  
+  .itemsTable th,
+  .itemsTable td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerContent h1 {
+    font-size: 24px;
+  }
+  
+  .summaryValue {
+    font-size: 20px;
+  }
+  
+  .statValue {
+    font-size: 20px;
+  }
+  
+  .itemsTable {
+    font-size: 12px;
+  }
+  
+  .productName {
+    font-size: 14px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .editCard,
+  .editTransactionForm,
+  .deleteSaleForm {
+    display: none;
+  }
+  
+  .container {
+    background: white;
+    padding: 0;
+  }
+  
+  .summaryCard,
+  .customerCard,
+  .financialCard,
+  .statsCard,
+  .itemsCard,
+  .timelineCard {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+    background: white;
+    color: black;
+  }
+}

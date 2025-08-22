@@ -8,13 +8,12 @@ import {
   MdSupervisedUserCircle,
   MdShoppingBag,
   MdAttachMoney,
-  MdWork,
-  MdAnalytics,
   MdPeople,
   MdOutlineSettings,
   MdHelpCenter,
   MdLogout,
   MdGroups ,
+  MdHistory
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import { useSession, signOut } from "next-auth/react";
@@ -39,18 +38,22 @@ const menuItems = [
         path: "/dashboard/customers",
         icon: <MdGroups  />,
       },
+    
+    ],
+  },
+  {
+    title: "Sales",
+    list: [
       {
         title: "Sales",
         path: "/dashboard/sales",
         icon: <MdAttachMoney />,
       },
-    ],
-  },
-  {
-    title: "Analytics",
-    list: [
-      { title: "Revenue", path: "/dashboard/revenue", icon: <MdWork /> },
-      { title: "Reports", path: "/dashboard/reports", icon: <MdAnalytics /> },
+      {
+        title: "Transactions",
+        path: "/dashboard/transactions",
+        icon: <MdHistory />,
+      },
       { title: "Teams", path: "/dashboard/teams", icon: <MdPeople /> },
     ],
   },

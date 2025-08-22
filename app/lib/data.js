@@ -187,7 +187,11 @@ export const fetchAllCustomers = async () => {
 
 
 
-// Sales data
+// ===========================
+// Sales Data
+// ===========================
+
+
 
 // Create a sale (low-level, server-side)
 export const createSale = async (saleData) => {
@@ -231,32 +235,55 @@ export const createSale = async (saleData) => {
   }
 };
 
-// Fetch single sale by id
+
+// Fetch single sale by id (serialized for sending to Client components)
 export const fetchSale = async (id) => {
   try {
     await connect();
     const s = await Sale.findById(id).lean();
     if (!s) return null;
+
+    // sanitize items: stringify object ids, drop Buffer/image binary fields
+    const items = Array.isArray(s.items)
+      ? s.items.map(item => {
+          return {
+            // only keep primitive fields you actually need
+            _id: item._id?.toString?.() || undefined,
+            productId: item.productId?.toString?.() || item.productId || undefined,
+            title: item.title || item.name || undefined,
+            quantity: typeof item.quantity === 'number' ? item.quantity : Number(item.quantity || 0),
+            price: typeof item.price === 'number' ? item.price : Number(item.price || 0),
+            originalItemPrice: typeof item.originalItemPrice === 'number' ? item.originalItemPrice : (item.originalItemPrice ? Number(item.originalItemPrice) : undefined),
+            // drop any heavy/binary fields (e.g. image.data, buffer) — don't pass buffers
+          };
+        })
+      : [];
+
     return {
       id: s._id.toString(),
-      items: s.items,
-      subtotal: s.subtotal,
-      tax: s.tax,
-      total: s.total,
-      paymentMethod: s.paymentMethod,
-      amountPaid: s.amountPaid,
-      change: s.change,
-      customer: s.customer,
+      items,
+      subtotal: typeof s.subtotal === 'number' ? s.subtotal : Number(s.subtotal || 0),
+      tax: typeof s.tax === 'number' ? s.tax : Number(s.tax || 0),
+      total: typeof s.total === 'number' ? s.total : Number(s.total || 0),
+      paymentMethod: s.paymentMethod || '',
+      amountPaid: typeof s.amountPaid === 'number' ? s.amountPaid : Number(s.amountPaid || 0),
+      change: typeof s.change === 'number' ? s.change : Number(s.change || 0),
+      customer: s.customer ? {
+        name: s.customer.name || '',
+        email: s.customer.email || '',
+        phone: s.customer.phone || ''
+      } : null,
       sellerId: s.sellerId ? String(s.sellerId) : undefined,
       createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
       updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
-      notes: s.notes,
+      notes: s.notes || '',
     };
   } catch (err) {
     console.error("fetchSale error:", err);
     return null;
   }
 };
+
 
 
 // Fetch many sales (with optional pagination / filter)
