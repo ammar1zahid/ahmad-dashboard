@@ -1,7 +1,7 @@
 // app/dashboard/transactions/[id]/page.jsx
 import { fetchSale } from "@/app/lib/data";
 import { updateSaleFromModal } from "@/app/lib/actions";
-import styles from "../../../components/dashboard/sales/transactionPage.module.css";
+import styles from "../../../components/transactions/transactionPage.module.css";
 import Link from "next/link";
 
 const SingleTransactionPage = async (props) => {

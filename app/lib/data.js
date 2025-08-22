@@ -343,6 +343,7 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
         createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
         updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
         notes: s.notes ?? undefined,
+        status: s.status ?? "completed",
       };
     });
 
