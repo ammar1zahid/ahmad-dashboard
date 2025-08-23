@@ -7,6 +7,7 @@ import SalesHistory from "../../components/sales/SalesHistory/SalesHistory";
 import QuickStats from "../../components/sales/QuickStats/QuickStats";
 import CustomerModal from "../../components/sales/CustomerModal/CustomerModal";
 import ReceiptModal from "../../components/sales/ReceiptModal/ReceiptModal";
+import { useSession } from "next-auth/react";
 import "../../components/sales/sales.module.css";
 
 /**
@@ -43,6 +44,8 @@ const SalesClientPage = ({
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastTransaction, setLastTransaction] = useState(null);
   const [userModalMode, setUserModalMode] = useState(null);
+  const { data: session } = useSession();
+  const user = session?.user;
 
   // Cart operations
   const addToCart = (product) => {
@@ -163,7 +166,7 @@ const SalesClientPage = ({
       } : undefined,
       notes: transaction.notes || undefined,
       status: transaction.status || "completed", 
-      // sellerId: optionally pass here if you cannot resolve from session on server
+       sellerId: user ? user.id : null
     };
 
     const saved = await createSaleAction(saleData);

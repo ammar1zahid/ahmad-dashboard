@@ -288,6 +288,73 @@ export const fetchSale = async (id) => {
 
 
 // Fetch many sales (with optional pagination / filter)
+// export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null } = {}) => {
+//   try {
+//     await connect();
+//     page = parseInt(page, 10) || 1;
+//     limit = parseInt(limit, 10) || 20;
+//     const skip = (page - 1) * limit;
+
+//     const filter = {};
+//     if (sellerId) filter.sellerId = sellerId;
+//     if (q) {
+//       const regex = new RegExp(String(q), "i");
+//       filter.$or = [
+//         { "customer.name": { $regex: regex } },
+//         { paymentMethod: { $regex: regex } },
+//         { notes: { $regex: regex } }
+//       ];
+//     }
+
+//     const count = await Sale.countDocuments(filter);
+//     const rows = await Sale.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+
+//     const data = rows.map(s => {
+//       const items = (s.items || []).map(it => ({
+//         productId: it.productId ? String(it.productId) : undefined,
+//         title: it.title ?? "",
+//         quantity: Number(it.quantity ?? 0),
+//         price: Number(it.price ?? 0),
+//         originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+//         originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
+//       }));
+
+//       const customer = s.customer
+//         ? {
+//             id: s.customer.id ? String(s.customer.id) : (s.customer._id ? String(s.customer._id) : undefined),
+//             name: s.customer.name ?? "",
+//             email: s.customer.email ?? "",
+//             phone: s.customer.phone ?? "",
+//             address: s.customer.address ?? "",
+//           }
+//         : undefined;
+
+//       return {
+//         id: s._id ? String(s._id) : (s.id ? String(s.id) : undefined),
+//         items,
+//         subtotal: Number(s.subtotal ?? 0),
+//         tax: Number(s.tax ?? 0),
+//         total: Number(s.total ?? 0),
+//         paymentMethod: s.paymentMethod ?? "cash",
+//         amountPaid: Number(s.amountPaid ?? 0),
+//         change: Number(s.change ?? 0),
+//         customer,
+//         sellerId: s.sellerId ? String(s.sellerId) : undefined,
+//         createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
+//         updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
+//         notes: s.notes ?? undefined,
+//         status: s.status ?? "completed",
+//       };
+//     });
+
+//     return { count, sales: data };
+//   } catch (err) {
+//     console.error("fetchSales error:", err);
+//     return { count: 0, sales: [] };
+//   }
+// };
+
+
 export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null } = {}) => {
   try {
     await connect();
@@ -307,7 +374,14 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
     }
 
     const count = await Sale.countDocuments(filter);
-    const rows = await Sale.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+
+    // populate sellerId but only the safe fields we want to expose (no passwords)
+    const rows = await Sale.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "sellerId", select: "username email img isAdmin" })
+      .lean();
 
     const data = rows.map(s => {
       const items = (s.items || []).map(it => ({
@@ -321,7 +395,7 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
 
       const customer = s.customer
         ? {
-            id: s.customer.id ? String(s.customer.id) : (s.customer._id ? String(s.customer._id) : undefined),
+            id: s.customer.id ? String(s.customer.id) : undefined,
             name: s.customer.name ?? "",
             email: s.customer.email ?? "",
             phone: s.customer.phone ?? "",
@@ -329,8 +403,26 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
           }
         : undefined;
 
+      // seller may be populated (object) or just an id (string/ObjectId)
+      let seller = undefined;
+      if (s.sellerId) {
+        // when populated via .populate + .lean(), s.sellerId is a plain object
+        // but be defensive: could be ObjectId string too
+        if (typeof s.sellerId === "object") {
+          seller = {
+            id: s.sellerId._id ? String(s.sellerId._id) : (s.sellerId.id ? String(s.sellerId.id) : undefined),
+            username: s.sellerId.username ?? "",
+            email: s.sellerId.email ?? "",
+            img: s.sellerId.img ?? undefined,
+            isAdmin: !!s.sellerId.isAdmin
+          };
+        } else {
+          seller = { id: String(s.sellerId) };
+        }
+      }
+
       return {
-        id: s._id ? String(s._id) : (s.id ? String(s.id) : undefined),
+        id: s._id ? String(s._id) : undefined,
         items,
         subtotal: Number(s.subtotal ?? 0),
         tax: Number(s.tax ?? 0),
@@ -339,7 +431,7 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
         amountPaid: Number(s.amountPaid ?? 0),
         change: Number(s.change ?? 0),
         customer,
-        sellerId: s.sellerId ? String(s.sellerId) : undefined,
+        seller, // <-- serialized seller object (or undefined)
         createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
         updatedAt: s.updatedAt ? s.updatedAt.toISOString() : undefined,
         notes: s.notes ?? undefined,
@@ -353,7 +445,6 @@ export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null
     return { count: 0, sales: [] };
   }
 };
-
 
 // fetch sales for a specific customer
 export const fetchSalesByCustomer = async (

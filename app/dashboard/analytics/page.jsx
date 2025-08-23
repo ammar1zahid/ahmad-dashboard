@@ -38,6 +38,39 @@ const AnalyticsPage = async ({ searchParams }) => {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
 
+  // Seller performance analytics
+  const sellersMap = {};
+  sales.forEach(sale => {
+    if (sale.seller) {
+      const sellerId = sale.seller.id;
+      const sellerName = sale.seller.username || 'Unknown Seller';
+      
+      if (!sellersMap[sellerId]) {
+        sellersMap[sellerId] = {
+          id: sellerId,
+          name: sellerName,
+          email: sale.seller.email,
+          isAdmin: sale.seller.isAdmin,
+          totalSales: 0,
+          totalRevenue: 0,
+          averageOrderValue: 0
+        };
+      }
+      
+      sellersMap[sellerId].totalSales += 1;
+      sellersMap[sellerId].totalRevenue += sale.total;
+    }
+  });
+
+  // Calculate average order values for sellers
+  Object.values(sellersMap).forEach(seller => {
+    seller.averageOrderValue = seller.totalSales > 0 ? seller.totalRevenue / seller.totalSales : 0;
+  });
+
+  const topSellers = Object.values(sellersMap)
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 5);
+
   // Sales by date (last 7 days)
   const salesByDate = {};
   const last7Days = [];
@@ -73,7 +106,7 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.metricCard}>
           <div className={styles.metricIcon}>💰</div>
           <div className={styles.metricContent}>
-            <h3 className={styles.metricValue}>Rs {totalRevenue.toFixed(2)}</h3>
+            <h3 className={styles.metricValue}>${totalRevenue.toFixed(2)}</h3>
             <p className={styles.metricLabel}>Total Revenue</p>
           </div>
         </div>
@@ -89,7 +122,7 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.metricCard}>
           <div className={styles.metricIcon}>💳</div>
           <div className={styles.metricContent}>
-            <h3 className={styles.metricValue}>Rs {averageOrderValue.toFixed(2)}</h3>
+            <h3 className={styles.metricValue}>${averageOrderValue.toFixed(2)}</h3>
             <p className={styles.metricLabel}>Average Order Value</p>
           </div>
         </div>
@@ -97,7 +130,7 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.metricCard}>
           <div className={styles.metricIcon}>🏷️</div>
           <div className={styles.metricContent}>
-            <h3 className={styles.metricValue}>Rs {totalTax.toFixed(2)}</h3>
+            <h3 className={styles.metricValue}>${totalTax.toFixed(2)}</h3>
             <p className={styles.metricLabel}>Total Tax Collected</p>
           </div>
         </div>
@@ -119,7 +152,7 @@ const AnalyticsPage = async ({ searchParams }) => {
                     <div 
                       className={styles.bar}
                       style={{ height: `${height}px` }}
-                      title={`Rs ${data.revenue.toFixed(2)}`}
+                      title={`$${data.revenue.toFixed(2)}`}
                     ></div>
                     <span className={styles.barLabel}>
                       {new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}
@@ -153,6 +186,41 @@ const AnalyticsPage = async ({ searchParams }) => {
 
       {/* Top Selling Items */}
       <div className={styles.tableCard}>
+        <h2 className={styles.tableTitle}>Top Performing Sellers</h2>
+        <div className={styles.table}>
+          <div className={styles.tableHeader}>
+            <div className={styles.tableCell}>Seller</div>
+            <div className={styles.tableCell}>Total Sales</div>
+            <div className={styles.tableCell}>Total Revenue</div>
+            <div className={styles.tableCell}>Avg Order Value</div>
+            <div className={styles.tableCell}>Role</div>
+          </div>
+          {topSellers.map((seller) => (
+            <div key={seller.id} className={styles.tableRow}>
+              <div className={styles.tableCell}>
+                <div className={styles.sellerInfo}>
+                  <span className={styles.sellerName}>{seller.name}</span>
+                  <span className={styles.sellerEmail}>{seller.email}</span>
+                </div>
+              </div>
+              <div className={styles.tableCell}>{seller.totalSales}</div>
+              <div className={styles.tableCell}>${seller.totalRevenue.toFixed(2)}</div>
+              <div className={styles.tableCell}>${seller.averageOrderValue.toFixed(2)}</div>
+              <div className={styles.tableCell}>
+                <span className={`${styles.role} ${seller.isAdmin ? styles.admin : styles.seller}`}>
+                  {seller.isAdmin ? 'Admin' : 'Seller'}
+                </span>
+              </div>
+            </div>
+          ))}
+          {topSellers.length === 0 && (
+            <div className={styles.noData}>No seller data available</div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Selling Items */}
+      <div className={styles.tableCard}>
         <h2 className={styles.tableTitle}>Top Selling Items</h2>
         <div className={styles.table}>
           <div className={styles.tableHeader}>
@@ -164,7 +232,7 @@ const AnalyticsPage = async ({ searchParams }) => {
             <div key={index} className={styles.tableRow}>
               <div className={styles.tableCell}>{item.title}</div>
               <div className={styles.tableCell}>{item.quantity}</div>
-              <div className={styles.tableCell}>Rs {item.revenue.toFixed(2)}</div>
+              <div className={styles.tableCell}>${item.revenue.toFixed(2)}</div>
             </div>
           ))}
           {topItems.length === 0 && (
@@ -193,7 +261,7 @@ const AnalyticsPage = async ({ searchParams }) => {
               <div className={styles.tableCell}>
                 {sale.paymentMethod.charAt(0).toUpperCase() + sale.paymentMethod.slice(1)}
               </div>
-              <div className={styles.tableCell}>Rs {sale.total.toFixed(2)}</div>
+              <div className={styles.tableCell}>${sale.total.toFixed(2)}</div>
               <div className={styles.tableCell}>
                 <span className={`${styles.status} ${styles[sale.status]}`}>
                   {sale.status}
