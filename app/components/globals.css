@@ -3,6 +3,15 @@
   --bgSoft: #182237;
   --text: white;
   --textSoft: #b7bac1;
+  --accent: #3b82f6;
+  --accentHover: #2563eb;
+  --success: #10b981;
+  --successHover: #059669;
+  --danger: #ef4444;
+  --dangerHover: #dc2626;
+  --border: #334155;
+  --borderSoft: #475569;
+  --shadow: rgba(0, 0, 0, 0.3);
 }
 
 * {
