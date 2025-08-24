@@ -20,12 +20,20 @@ export default function LoginForm() {
       const username = form.get("username");
       const password = form.get("password");
 
+      // determine origin safely (browser only)
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXTAUTH_URL || "";
+
+      // attempt sign-in (do not let NextAuth auto-redirect; we'll handle it client-side)
       const res = await signIn("credentials", {
         redirect: false,
         username,
         password,
       });
 
+      console.log("signIn result:", res);
       setLoading(false);
 
       if (res?.error) {
@@ -33,10 +41,9 @@ export default function LoginForm() {
         return;
       }
 
-      // Ensure session is updated before redirect
-      setTimeout(() => {
-        router.replace("/dashboard");
-      }, 100);
+      // build absolute dashboard URL and navigate there
+      const callbackUrl = new URL("/dashboard", origin).toString();
+      router.replace(callbackUrl);
     } catch (err) {
       console.error("Login error:", err);
       setLoading(false);

@@ -21,13 +21,16 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const user = session?.user;
 
-  const handleSignOut = async () => {
-    try {
-      await signOut({ callbackUrl: window.location.origin + "/login" });
-    } catch (err) {
-      console.error("signOut error:", err);
-    }
-  };
+const handleSignOut = async () => {
+  try {
+    const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXTAUTH_URL;
+    const callbackUrl = new URL("/login", origin).toString(); // canonical absolute URL
+    await signOut({ callbackUrl });
+  } catch (err) {
+    console.error("signOut error:", err);
+  }
+};
+
 
   // Build menu dynamically so we can inject user id into profile link
   const menuItems = [
