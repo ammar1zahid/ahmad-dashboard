@@ -330,114 +330,114 @@ export async function deleteCustomer(formData) {
 
 
 // Create Sale from client (server action)
-export async function createSaleFromModal(saleData = {}) {
-  // saleData expected shape:
-  // { items: [{ productId, title, quantity, price, originalItemPrice, originalPurchasePrice }, ...], ... }
+// export async function createSaleFromModal(saleData = {}) {
+//   // saleData expected shape:
+//   // { items: [{ productId, title, quantity, price, originalItemPrice, originalPurchasePrice }, ...], ... }
 
-  // Resolve sellerId from session if possible
-  let sellerId;
-  try {
-    const { getServerSession } = await import("next-auth/next");
-    const { authOptions } = await import("@/app/api/auth/[...nextauth]/route"); // adjust path if different
+//   // Resolve sellerId from session if possible
+//   let sellerId;
+//   try {
+//     const { getServerSession } = await import("next-auth/next");
+//     const { authOptions } = await import("@/app/api/auth/[...nextauth]/route"); // adjust path if different
 
-    const session = await getServerSession(authOptions);
-    if (session?.user?.id) {
-      sellerId = session.user.id;
-    } else {
-      sellerId = saleData.sellerId || undefined;
-    }
-  } catch (e) {
-    sellerId = saleData.sellerId || undefined;
-  }
+//     const session = await getServerSession(authOptions);
+//     if (session?.user?.id) {
+//       sellerId = session.user.id;
+//     } else {
+//       sellerId = saleData.sellerId || undefined;
+//     }
+//   } catch (e) {
+//     sellerId = saleData.sellerId || undefined;
+//   }
 
-  // Basic validation
-  if (!Array.isArray(saleData.items) || saleData.items.length === 0) {
-    throw new Error("Sale must include at least one item");
-  }
+//   // Basic validation
+//   if (!Array.isArray(saleData.items) || saleData.items.length === 0) {
+//     throw new Error("Sale must include at least one item");
+//   }
 
-  // coerce numbers
-  const subtotal = Number(saleData.subtotal || 0);
-  const tax = Number(saleData.tax || 0);
-  const total = Number(saleData.total || 0);
-  const amountPaid = Number(saleData.amountPaid || 0);
-  const change = Number(saleData.change || 0);
+//   // coerce numbers
+//   const subtotal = Number(saleData.subtotal || 0);
+//   const tax = Number(saleData.tax || 0);
+//   const total = Number(saleData.total || 0);
+//   const amountPaid = Number(saleData.amountPaid || 0);
+//   const change = Number(saleData.change || 0);
 
-  try {
-    await connect();
+//   try {
+//     await connect();
 
-    const newSale = new Sale({
-      items: saleData.items.map(it => ({
-        // keep productId as ObjectId on DB write (if provided), but allow string too
-        productId: it.productId ? it.productId : undefined,
-        title: it.title ?? "",
-        quantity: Number(it.quantity || 1),
-        price: Number(it.price || 0),
-        originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
-        originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined
-      })),
-      subtotal,
-      tax,
-      total,
-      paymentMethod: saleData.paymentMethod || "cash",
-      amountPaid,
-      change,
-      customer: saleData.customer || undefined,
-      sellerId: sellerId ? sellerId : undefined,
-      notes: saleData.notes || undefined,
-       status: saleData.status || "completed",
-    });
+//     const newSale = new Sale({
+//       items: saleData.items.map(it => ({
+//         // keep productId as ObjectId on DB write (if provided), but allow string too
+//         productId: it.productId ? it.productId : undefined,
+//         title: it.title ?? "",
+//         quantity: Number(it.quantity || 1),
+//         price: Number(it.price || 0),
+//         originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+//         originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined
+//       })),
+//       subtotal,
+//       tax,
+//       total,
+//       paymentMethod: saleData.paymentMethod || "cash",
+//       amountPaid,
+//       change,
+//       customer: saleData.customer || undefined,
+//       sellerId: sellerId ? sellerId : undefined,
+//       notes: saleData.notes || undefined,
+//        status: saleData.status || "completed",
+//     });
 
-    const saved = await newSale.save();
+//     const saved = await newSale.save();
 
-    // optional: revalidate listing page
-    try {
-      const { revalidatePath } = await import("next/cache");
-      revalidatePath("/sales");
-    } catch (e) {
-      // ignore if revalidate not available
-    }
+//     // optional: revalidate listing page
+//     try {
+//       const { revalidatePath } = await import("next/cache");
+//       revalidatePath("/sales");
+//     } catch (e) {
+//       // ignore if revalidate not available
+//     }
 
-    // map saved result to plain serializable object
-    const mappedItems = (saved.items || []).map(it => ({
-      productId: it.productId ? String(it.productId) : undefined,
-      title: it.title ?? "",
-      quantity: Number(it.quantity || 0),
-      price: Number(it.price || 0),
-      originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
-      originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
-    }));
+//     // map saved result to plain serializable object
+//     const mappedItems = (saved.items || []).map(it => ({
+//       productId: it.productId ? String(it.productId) : undefined,
+//       title: it.title ?? "",
+//       quantity: Number(it.quantity || 0),
+//       price: Number(it.price || 0),
+//       originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+//       originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
+//     }));
 
-    const mappedCustomer = saved.customer
-      ? {
-          // handle both saved.customer.id or saved.customer._id shape
-          id: saved.customer.id ? String(saved.customer.id) : (saved.customer._id ? String(saved.customer._id) : undefined),
-          name: saved.customer.name ?? "",
-          email: saved.customer.email ?? "",
-          phone: saved.customer.phone ?? "",
-          address: saved.customer.address ?? "",
-        }
-      : undefined;
+//     const mappedCustomer = saved.customer
+//       ? {
+//           // handle both saved.customer.id or saved.customer._id shape
+//           id: saved.customer.id ? String(saved.customer.id) : (saved.customer._id ? String(saved.customer._id) : undefined),
+//           name: saved.customer.name ?? "",
+//           email: saved.customer.email ?? "",
+//           phone: saved.customer.phone ?? "",
+//           address: saved.customer.address ?? "",
+//         }
+//       : undefined;
 
-    return {
-      id: String(saved._id),
-      items: mappedItems,
-      subtotal: Number(saved.subtotal || 0),
-      tax: Number(saved.tax || 0),
-      total: Number(saved.total || 0),
-      paymentMethod: saved.paymentMethod ?? "cash",
-      amountPaid: Number(saved.amountPaid || 0),
-      change: Number(saved.change || 0),
-      customer: mappedCustomer,
-      sellerId: saved.sellerId ? String(saved.sellerId) : undefined,
-      createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
-      updatedAt: saved.updatedAt ? saved.updatedAt.toISOString() : undefined,
-      notes: saved.notes ?? undefined,
-    };
-  } catch (err) {
-    console.error("createSaleFromModal error:", err);
-    throw new Error("Failed to save sale!");
-  }
-}
+//     return {
+//       id: String(saved._id),
+//       items: mappedItems,
+//       subtotal: Number(saved.subtotal || 0),
+//       tax: Number(saved.tax || 0),
+//       total: Number(saved.total || 0),
+//       paymentMethod: saved.paymentMethod ?? "cash",
+//       amountPaid: Number(saved.amountPaid || 0),
+//       change: Number(saved.change || 0),
+//       customer: mappedCustomer,
+//       sellerId: saved.sellerId ? String(saved.sellerId) : undefined,
+//       createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
+//       updatedAt: saved.updatedAt ? saved.updatedAt.toISOString() : undefined,
+//       notes: saved.notes ?? undefined,
+//     };
+//   } catch (err) {
+//     console.error("createSaleFromModal error:", err);
+//     throw new Error("Failed to save sale!");
+//   }
+// }
 
 
 
@@ -596,26 +596,317 @@ export async function updateSaleFromModal(formData) {
 // Delete sale (server action)
 // app/lib/actions.js
 
+// export async function deleteSaleFromModal(formData) {
+//   "use server";
+//   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
+//   const id = data.id;
+//   if (!id) throw new Error("Sale id is required");
+
+//   try {
+//     await connect();
+//     await Sale.findByIdAndDelete(id);
+//     // revalidate the correct path you use in your app:
+//     try {
+//       const { revalidatePath } = await import("next/cache");
+//       revalidatePath("/dashboard/transactions"); // use the route you want refreshed
+//     } catch (e) {
+//       // ignore if revalidate not available
+//     }
+//     return true;
+//   } catch (err) {
+//     console.error(err);
+//     throw new Error("Failed to delete sale!");
+//   }
+// }
+
+
+// server action: create sale using a transaction to avoid race conditions
+export async function createSaleFromModal(saleData = {}) {
+  "use server";
+
+  // resolve seller id (same as your previous implementation)
+  let sellerId;
+  try {
+    const { getServerSession } = await import("next-auth/next");
+    const { authOptions } = await import("@/app/api/auth/[...nextauth]/route");
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) sellerId = session.user.id;
+    else sellerId = saleData.sellerId || undefined;
+  } catch (e) {
+    sellerId = saleData.sellerId || undefined;
+  }
+
+  if (!Array.isArray(saleData.items) || saleData.items.length === 0) {
+    throw new Error("Sale must include at least one item");
+  }
+
+  // coerce numbers
+  const subtotal = Number(saleData.subtotal || 0);
+  const tax = Number(saleData.tax || 0);
+  const total = Number(saleData.total || 0);
+  const amountPaid = Number(saleData.amountPaid || 0);
+  const change = Number(saleData.change || 0);
+
+  // ensure DB connected
+  await connect();
+
+  // dynamic import mongoose so we don't need to change file-level imports
+  const mongoose = (await import("mongoose")).default;
+
+  // create a session and transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // create the Sale document within the session
+    const newSale = new Sale({
+      items: saleData.items.map(it => ({
+        productId: it.productId ? it.productId : undefined,
+        title: it.title ?? "",
+        quantity: Number(it.quantity || 1),
+        price: Number(it.price || 0),
+        originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+        originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined
+      })),
+      subtotal,
+      tax,
+      total,
+      paymentMethod: saleData.paymentMethod || "cash",
+      amountPaid,
+      change,
+      customer: saleData.customer || undefined,
+      sellerId: sellerId ? sellerId : undefined,
+      notes: saleData.notes || undefined,
+      status: saleData.status || "completed",
+    });
+
+    const saved = await newSale.save({ session });
+
+    // For each sold item that references a productId, atomically decrement product stock
+    for (const it of saved.items || []) {
+      if (!it.productId) continue;
+      const productId = String(it.productId);
+      const soldItems = Number(it.quantity || 0);
+      if (soldItems <= 0) continue;
+
+      // Use an aggregation-pipeline update so we can compute and set derived fields atomically.
+      // The filter ensures there's enough stock (currentTotal >= soldItems).
+      const filter = {
+        _id: productId,
+        $expr: {
+          $gte: [
+            { $add: [{ $multiply: ["$units", "$itemsPerUnit"] }, "$extraItems"] },
+            soldItems
+          ]
+        }
+      };
+
+      const pipeline = [
+        // compute currentTotal and newTotal
+        {
+          $set: {
+            __currentTotal: { $add: [{ $multiply: ["$units", "$itemsPerUnit"] }, "$extraItems"] },
+          }
+        },
+        {
+          $set: {
+            __newTotal: { $subtract: ["$__currentTotal", soldItems] }
+          }
+        },
+        // derive new units, extraItems, totalItems, itemPrice
+        {
+          $set: {
+            units: {
+              $cond: [
+                { $gt: ["$itemsPerUnit", 0] },
+                { $floor: { $divide: ["$__newTotal", "$itemsPerUnit"] } },
+                0
+              ]
+            },
+            extraItems: {
+              $cond: [
+                { $gt: ["$itemsPerUnit", 0] },
+                { $mod: ["$__newTotal", "$itemsPerUnit"] },
+                "$__newTotal"
+              ]
+            },
+            totalItems: "$__newTotal",
+            itemPrice: {
+              $cond: [
+                { $gt: ["$__newTotal", 0] },
+                { $divide: ["$purchasePrice", "$__newTotal"] },
+                0
+              ]
+            }
+          }
+        },
+        { $unset: ["__currentTotal", "__newTotal"] }
+      ];
+
+      const updatedProduct = await Product.findOneAndUpdate(filter, pipeline, { new: true, session });
+
+      if (!updatedProduct) {
+        // insufficient stock or product disappeared
+        throw new Error(
+          `Insufficient stock for product ${productId} (requested ${soldItems}).`
+        );
+      }
+    }
+
+    // all product updates succeeded, commit
+    await session.commitTransaction();
+    session.endSession();
+
+    // revalidate page if desired
+    try {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath("/sales");
+    } catch (e) {
+      // ignore if not available
+    }
+
+    // return mapped saved sale (same as your original mapping)
+    const mappedItems = (saved.items || []).map(it => ({
+      productId: it.productId ? String(it.productId) : undefined,
+      title: it.title ?? "",
+      quantity: Number(it.quantity || 0),
+      price: Number(it.price || 0),
+      originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
+      originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
+    }));
+
+    const mappedCustomer = saved.customer
+      ? {
+          id: saved.customer.id ? String(saved.customer.id) : (saved.customer._id ? String(saved.customer._id) : undefined),
+          name: saved.customer.name ?? "",
+          email: saved.customer.email ?? "",
+          phone: saved.customer.phone ?? "",
+          address: saved.customer.address ?? "",
+        }
+      : undefined;
+
+    return {
+      id: String(saved._id),
+      items: mappedItems,
+      subtotal: Number(saved.subtotal || 0),
+      tax: Number(saved.tax || 0),
+      total: Number(saved.total || 0),
+      paymentMethod: saved.paymentMethod ?? "cash",
+      amountPaid: Number(saved.amountPaid || 0),
+      change: Number(saved.change || 0),
+      customer: mappedCustomer,
+      sellerId: saved.sellerId ? String(saved.sellerId) : undefined,
+      createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
+      updatedAt: saved.updatedAt ? saved.updatedAt.toISOString() : undefined,
+      notes: saved.notes ?? undefined,
+    };
+
+  } catch (err) {
+    // abort transaction and rethrow
+    try {
+      await session.abortTransaction();
+      session.endSession();
+    } catch (abortErr) {
+      console.error("Failed to abort transaction:", abortErr);
+    }
+    console.error("Transaction failed during createSaleFromModal:", err);
+    // surface useful message
+    throw new Error(err.message || "Failed to create sale (transaction aborted).");
+  }
+}
+
+// server action: delete sale using transaction to restore stock atomically
 export async function deleteSaleFromModal(formData) {
   "use server";
   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
   const id = data.id;
   if (!id) throw new Error("Sale id is required");
 
+  await connect();
+  const mongoose = (await import("mongoose")).default;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    await connect();
-    await Sale.findByIdAndDelete(id);
-    // revalidate the correct path you use in your app:
+    const sale = await Sale.findById(id).session(session).lean();
+    if (!sale) throw new Error("Sale not found");
+
+    // restore stock for each product item
+    for (const it of sale.items || []) {
+      if (!it.productId) continue;
+      const productId = String(it.productId);
+      const returnedItems = Number(it.quantity || 0);
+      if (returnedItems <= 0) continue;
+
+      // use aggregation pipeline update to recompute totals
+      const pipeline = [
+        {
+          $set: {
+            __currentTotal: { $add: [{ $multiply: ["$units", "$itemsPerUnit"] }, "$extraItems"] }
+          }
+        },
+        {
+          $set: {
+            __newTotal: { $add: ["$__currentTotal", returnedItems] }
+          }
+        },
+        {
+          $set: {
+            units: {
+              $cond: [
+                { $gt: ["$itemsPerUnit", 0] },
+                { $floor: { $divide: ["$__newTotal", "$itemsPerUnit"] } },
+                0
+              ]
+            },
+            extraItems: {
+              $cond: [
+                { $gt: ["$itemsPerUnit", 0] },
+                { $mod: ["$__newTotal", "$itemsPerUnit"] },
+                "$__newTotal"
+              ]
+            },
+            totalItems: "$__newTotal",
+            itemPrice: {
+              $cond: [
+                { $gt: ["$__newTotal", 0] },
+                { $divide: ["$purchasePrice", "$__newTotal"] },
+                0
+              ]
+            }
+          }
+        },
+        { $unset: ["__currentTotal", "__newTotal"] }
+      ];
+
+      // update product
+      await Product.findByIdAndUpdate(productId, pipeline, { new: true, session });
+    }
+
+    // delete the sale
+    await Sale.findByIdAndDelete(id, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // revalidate listing page
     try {
       const { revalidatePath } = await import("next/cache");
-      revalidatePath("/dashboard/transactions"); // use the route you want refreshed
+      revalidatePath("/dashboard/transactions");
     } catch (e) {
-      // ignore if revalidate not available
+      // ignore
     }
+
     return true;
   } catch (err) {
-    console.error(err);
-    throw new Error("Failed to delete sale!");
+    try {
+      await session.abortTransaction();
+      session.endSession();
+    } catch (abortErr) {
+      console.error("Failed to abort transaction:", abortErr);
+    }
+    console.error("Transaction failed during deleteSaleFromModal:", err);
+    throw new Error(err.message || "Failed to delete sale (transaction aborted).");
   }
 }
 
