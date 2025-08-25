@@ -2,9 +2,8 @@
 export const dynamic = "force-dynamic";
 
 import Search from "@/app/components/dashboard/search/search";
-import styles from "../../components/dashboard/users/users.module.css"; 
+import styles from "../../components/customers/customer.module.css"; 
 import Link from "next/link";
-import Image from "next/image";
 import Pagination from "@/app/components/dashboard/pagination/pagination";
 import { fetchCustomers } from "@/app/lib/data";
 import { deleteCustomer } from "@/app/lib/actions";
@@ -46,22 +45,15 @@ async function CustomersPage({ searchParams }) {
 
                 return (
                   <tr key={id}>
-                    <td>
+                    <td data-label="Name:">
                       <div className={styles.user}>
-                        <Image
-                          src={customer.img || "/noavatar.png"}
-                          alt=""
-                          width={40}
-                          height={40}
-                          className={styles.userImage}
-                        />
                         {customer.name}
                       </div>
                     </td>
-                    <td>{customer.email}</td>
-                    <td>{created}</td>
-                    <td>{customer.phone || "-"}</td>
-                    <td>
+                    <td data-label="Email:">{customer.email}</td>
+                    <td data-label="Created:">{created}</td>
+                    <td data-label="Phone:">{customer.phone || "-"}</td>
+                    <td data-label="Actions:">
                       <div className={styles.buttons}>
                         <Link href={`/dashboard/customers/${id}`}>
                           <button className={`${styles.button} ${styles.view}`}>
@@ -77,7 +69,8 @@ async function CustomersPage({ searchParams }) {
                             Delete
                           </button>
                         </form>
-                            <Link href={`/dashboard/customers/transactions/${id}`}>
+                        
+                        <Link href={`/dashboard/customers/transactions/${id}`}>
                           <button className={`${styles.button} ${styles.view}`}>
                             View Transactions
                           </button>

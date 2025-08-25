@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 import { updateCustomer } from "@/app/lib/actions";
 import { fetchCustomer } from "@/app/lib/data";
 import styles from "../../../components/dashboard/users/singleUser/singleUser.module.css"; 
-import Image from "next/image";
 
 const SingleCustomerPage = async (props) => {
   const params = await props.params;
@@ -20,14 +19,10 @@ const SingleCustomerPage = async (props) => {
   const email = customer.email ?? "";
   const phone = customer.phone ?? "";
   const address = customer.address ?? "";
-  const imgSrc = customer.img || "/noavatar.png";
 
   return (
     <div className={styles.container}>
       <div className={styles.infoContainer}>
-        <div className={styles.imgContainer}>
-          <Image src={imgSrc} alt="" fill />
-        </div>
         <div className={styles.username}>{name}</div>
       </div>
 

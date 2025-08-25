@@ -1,4 +1,4 @@
-import styles from "../../../../components/customers/customerSales.module.css";
+import styles from "../../../../components/customers/transaction/customerSales.module.css";
 import { fetchSalesByCustomer } from "@/app/lib/data";
 
 function formatDate(dateString) {

@@ -1,0 +1,262 @@
+.container {
+  background-color: var(--bgSoft);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.addButton {
+  padding: 10px 20px;
+  background-color: #5d57c9;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.3s ease;
+}
+
+.addButton:hover {
+  background-color: #4a47a3;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  display: table;
+}
+
+.table thead {
+  background-color: var(--bg);
+}
+
+.table thead td {
+  padding: 15px 10px;
+  font-weight: bold;
+  color: var(--textSoft);
+  border-bottom: 2px solid #2e374a;
+  font-size: 14px;
+}
+
+.table tbody td {
+  padding: 15px 10px;
+  border-bottom: 1px solid #2e374a;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg);
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.view {
+  background-color: teal;
+}
+
+.view:hover {
+  background-color: #008080;
+}
+
+.delete {
+  background-color: crimson;
+}
+
+.delete:hover {
+  background-color: #dc143c;
+}
+
+/* Tablet styles */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+    margin-top: 15px;
+    overflow-x: hidden;
+  }
+
+  .top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .addButton {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  /* Convert table to card layout on mobile */
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .table tbody tr {
+    display: block;
+    background-color: var(--bg);
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #2e374a;
+    white-space: normal;
+  }
+
+  .table tbody tr:hover {
+    background-color: var(--bgSoft);
+  }
+
+  .table tbody td {
+    display: block;
+    padding: 8px 0;
+    border-bottom: none;
+    position: relative;
+    padding-left: 120px;
+    min-height: 30px;
+  }
+
+  .table tbody td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 110px;
+    font-weight: bold;
+    color: var(--textSoft);
+    font-size: 12px;
+  }
+
+  .buttons {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+
+  .button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile styles */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+
+  .top {
+    gap: 12px;
+  }
+
+  .addButton {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .table tbody tr {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .table tbody td {
+    padding: 6px 0;
+    padding-left: 100px;
+    font-size: 14px;
+  }
+
+  .table tbody td:before {
+    width: 95px;
+    font-size: 11px;
+  }
+
+  .user {
+    gap: 8px;
+  }
+
+  .buttons {
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 320px) {
+  .container {
+    padding: 8px;
+  }
+
+  .table tbody tr {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .table tbody td {
+    padding: 5px 0;
+    padding-left: 85px;
+    font-size: 13px;
+  }
+
+  .table tbody td:before {
+    width: 80px;
+    font-size: 10px;
+  }
+
+  .button {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+}
