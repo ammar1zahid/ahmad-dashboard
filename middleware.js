@@ -1,42 +1,57 @@
 // middleware.js
 import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+
+async function getSessionFromApi(req) {
+  try {
+    // forward incoming cookies so /api/auth/session can read them
+    const cookie = req.headers.get("cookie") || "";
+
+    // req.nextUrl.origin is available in Next middleware (fallback if not)
+    const origin = req.nextUrl?.origin || `${req.nextUrl?.protocol}//${req.headers.get("host")}`;
+
+    const resp = await fetch(new URL("/api/auth/session", origin).toString(), {
+      headers: {
+        cookie,
+        accept: "application/json",
+      },
+      next: { revalidate: 0 }, // ensure fresh session
+    });
+
+    if (!resp.ok) return null;
+    return await resp.json(); // shape: { user, expires } when logged in
+  } catch (err) {
+    console.error("middleware getSessionFromApi error:", err);
+    return null;
+  }
+}
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // --- QUICK SAFETY: do not run middleware on API routes, Next internals, static files or assets
+  // Skip API, Next internals, static files and assets
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/static") ||
-    pathname.includes(".") // file extension -> static asset
+    pathname.includes(".")
   ) {
     return NextResponse.next();
   }
 
-  // getToken reads the JWT created by NextAuth (works in middleware)
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const isLoggedIn = !!token;
-  const isAdmin = !!token?.isAdmin;
+  // Get session using the internal API (reliable cookie handling)
+  const session = await getSessionFromApi(req);
+  const isLoggedIn = !!session?.user;
+  const isAdmin = !!session?.user?.isAdmin;
 
-  // Redirect root "/" → login or dashboard depending on auth
+  // Root redirect
   if (pathname === "/") {
-    return NextResponse.redirect(
-      new URL(isLoggedIn ? "/dashboard" : "/login", req.url)
-    );
+    return NextResponse.redirect(new URL(isLoggedIn ? "/dashboard" : "/login", req.url));
   }
 
-  // Protect dashboard routes (require login AND admin)
+  // Protect dashboard routes (require login + admin)
   if (pathname.startsWith("/dashboard")) {
-    if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    // Optional: enforce admin-only access (restore old behaviour)
-    if (!isAdmin) {
-      // you can redirect to login or to a custom "unauthorized" page like /401
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
+    if (!isLoggedIn) return NextResponse.redirect(new URL("/login", req.url));
+    if (!isAdmin) return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // Redirect logged-in users away from login page
@@ -47,10 +62,6 @@ export async function middleware(req) {
   return NextResponse.next();
 }
 
-/*
-  Run middleware for all non-api/_next/static routes.
-  This matcher ensures middleware won't run for /api/auth/* and static assets.
-*/
 export const config = {
   matcher: ["/((?!api|_next|static|.*\\..*).*)"],
 };
