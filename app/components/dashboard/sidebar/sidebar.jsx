@@ -1,4 +1,3 @@
-// app/components/dashboard/sidebar/sidebar.jsx
 "use client";
 
 import Image from "next/image";
@@ -12,43 +11,37 @@ import {
   MdLogout,
   MdGroups,
   MdHistory,
-  MdPerson
+  MdPerson,
+  MdClose
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import { useSession, signOut } from "next-auth/react";
 
-export default function Sidebar() {
+export default function Sidebar({ onClose, isMobile }) {
   const { data: session } = useSession();
   const user = session?.user;
 
-// const handleSignOut = async () => {
-//   try {
-//     const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXTAUTH_URL;
-//     const callbackUrl = new URL("/login", origin).toString(); // canonical absolute URL
-//     await signOut({ callbackUrl });
-//   } catch (err) {
-//     console.error("signOut error:", err);
-//   }
-// };
+  const handleSignOut = async () => {
+    try {
+      const envLogout = process.env.NEXT_PUBLIC_NEXTLOGOUT_URL;
+      const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const callbackUrl = envLogout || new URL("/login", origin).toString();
 
-const handleSignOut = async () => {
-  try {
-    // Prefer public env var if available (set NEXT_PUBLIC_NEXTLOGOUT_URL in Vercel)
-    const envLogout = process.env.NEXT_PUBLIC_NEXTLOGOUT_URL;
-    const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const callbackUrl = envLogout || new URL("/login", origin).toString();
+      console.log("signOut callbackUrl:", callbackUrl, "envLogout:", envLogout, "NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
 
-    console.log("signOut callbackUrl:", callbackUrl, "envLogout:", envLogout, "NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+      await signOut({ callbackUrl });
+    } catch (err) {
+      console.error("signOut error:", err);
+    }
+  };
 
-    await signOut({ callbackUrl });
-  } catch (err) {
-    console.error("signOut error:", err);
-  }
-};
+  // Close sidebar when menu item is clicked on mobile
+  const handleMenuClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
 
-
-
-  // Build menu dynamically so we can inject user id into profile link
   const menuItems = [
     {
       title: "Pages",
@@ -86,12 +79,6 @@ const handleSignOut = async () => {
     {
       title: "User",
       list: [
-        // {
-        //   title: "Settings",
-        //   path: "/dashboard/settings",
-        //   icon: <MdOutlineSettings />,
-        // },
-        // { title: "Help", path: "/dashboard/help", icon: <MdHelpCenter /> },
         {
           title: "Profile",
           path: `/dashboard/users/${user?.id || ""}`,
@@ -103,6 +90,17 @@ const handleSignOut = async () => {
 
   return (
     <div className={styles.container}>
+      {/* Close button for mobile */}
+      {isMobile && (
+        <button 
+          className={styles.closeButton} 
+          onClick={onClose}
+          aria-label="Close sidebar"
+        >
+          <MdClose />
+        </button>
+      )}
+      
       <div className={styles.user}>
         <Image
           className={styles.userImage}
@@ -126,7 +124,11 @@ const handleSignOut = async () => {
           <li key={cat.title}>
             <span className={styles.cat}>{cat.title}</span>
             {cat.list.map((item) => (
-              <MenuLink item={item} key={item.title} />
+              <MenuLink 
+                item={item} 
+                key={item.title} 
+                onClick={handleMenuClick}
+              />
             ))}
           </li>
         ))}

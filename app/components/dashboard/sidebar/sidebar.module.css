@@ -1,59 +1,250 @@
-.container{
+/* sidebar.module.css - Responsive Sidebar */
+
+.container {
   position: sticky;
   top: 40px;
+  padding: 25px; /* Increased padding for wider sidebar */
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-.user{
+.user {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 25px; /* Increased spacing */
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--border);
 }
 
-.userImage{
+.userImage {
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
+  width: 55px; /* Larger avatar for wider sidebar */
+  height: 55px;
 }
 
-.userDetail{
+.userDetail {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
-.username{
+.username {
   font-weight: 500;
+  font-size: 15px; /* Slightly larger text */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.userTitle{
-  font-size: 12px;
+.userTitle {
+  font-size: 13px; /* Slightly larger text */
   color: var(--textSoft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.list{
+.list {
   list-style: none;
+  flex: 1;
 }
 
-.cat{
+.cat {
   color: var(--textSoft);
   font-weight: bold;
-  font-size: 13px;
-  margin: 10px 0px;
+  font-size: 14px; /* Larger category text */
+  margin: 20px 0 12px 0; /* Increased spacing */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.logout{
-  padding: 20px;
-  margin: 5px 0px;
+.logout {
+  padding: 18px 22px; /* Larger padding */
+  margin: 15px 0; /* Increased margin */
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px; /* Increased gap */
   cursor: pointer;
   border-radius: 10px;
   background: none;
   border: none;
   color: white;
   width: 100%;
+  transition: background-color 0.2s ease;
+  font-size: 15px; /* Larger font */
 }
 
-.logout:hover{
+.logout:hover {
   background-color: #2e374a;
+}
+
+.logout:active {
+  background-color: #1e2330;
+}
+
+/* Close button for mobile */
+.closeButton {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: var(--bgSoft);
+}
+
+/* Large Desktop - Extra spacing */
+@media screen and (min-width: 1440px) {
+  .container {
+    padding: 30px;
+  }
+  
+  .user {
+    gap: 25px;
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+  }
+  
+  .userImage {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .username {
+    font-size: 16px;
+  }
+  
+  .userTitle {
+    font-size: 14px;
+  }
+  
+  .cat {
+    font-size: 15px;
+    margin: 25px 0 15px 0;
+  }
+  
+  .logout {
+    padding: 20px 25px;
+    font-size: 16px;
+    gap: 15px;
+  }
+}
+
+/* Tablet Styles */
+@media screen and (max-width: 1023px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .user {
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+  }
+  
+  .userImage {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .username {
+    font-size: 13px;
+  }
+  
+  .userTitle {
+    font-size: 11px;
+  }
+  
+  .cat {
+    font-size: 13px;
+    margin: 15px 0 10px 0;
+  }
+  
+  .logout {
+    padding: 15px 20px;
+    font-size: 14px;
+    gap: 10px;
+  }
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+  .container {
+    position: static;
+    height: 100vh;
+    padding: 20px;
+    width: 100%;
+  }
+  
+  .closeButton {
+    display: block;
+  }
+  
+  .user {
+    margin-top: 40px;
+    gap: 15px;
+  }
+  
+  .userImage {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .username {
+    font-size: 14px;
+  }
+  
+  .userTitle {
+    font-size: 12px;
+  }
+  
+  .cat {
+    margin: 20px 0 10px 0;
+    font-size: 13px;
+  }
+  
+  .logout {
+    padding: 12px 15px;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+}
+
+/* Small Mobile Styles */
+@media screen and (max-width: 480px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .user {
+    gap: 12px;
+  }
+  
+  .userImage {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .username {
+    font-size: 13px;
+  }
+  
+  .userTitle {
+    font-size: 11px;
+  }
 }

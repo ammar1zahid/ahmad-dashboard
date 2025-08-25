@@ -1,4 +1,4 @@
-.container {
+/* .container {
   display: flex;
 }
 
@@ -35,4 +35,188 @@
 
 .side {
   flex: 1;
+} */
+
+
+
+/* dashboard.module.css - Responsive Layout */
+
+.container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.menu {
+  flex-shrink: 0;
+  background-color: var(--bgSoft);
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1000;
+  /* Increased width for laptop/desktop */
+  width: 300px;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  background-color: var(--bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main dashboard content */
+.wrapper {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  flex: 1;
+}
+
+.main {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.side {
+  flex: 1;
+  min-width: 250px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Mobile Overlay for Sidebar */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.overlay.active {
+  display: block;
+}
+
+/* Large Desktop - Extra wide sidebar */
+@media screen and (min-width: 1440px) {
+  .menu {
+    width: 350px;
+  }
+}
+
+/* Desktop - Standard wide sidebar */
+@media screen and (min-width: 1200px) and (max-width: 1439px) {
+  .menu {
+    width: 280px;
+  }
+}
+
+/* Laptop - Medium sidebar */
+@media screen and (min-width: 1024px) and (max-width: 1199px) {
+  .menu {
+    width: 260px;
+  }
+}
+
+/* Tablet Styles - Hide rightbar */
+@media screen and (max-width: 1023px) {
+  .wrapper {
+    flex-direction: column;
+  }
+  
+  /* Hide rightbar on tablet and mobile */
+  .side {
+    display: none;
+  }
+  
+  /* Main content takes full width when rightbar is hidden */
+  .main {
+    flex: 1;
+  }
+  
+  .cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  .content {
+    padding: 15px;
+  }
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+  .container {
+    position: relative;
+  }
+  
+  .menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    transform: translateX(-100%);
+    z-index: 1000;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .menu.open {
+    transform: translateX(0);
+  }
+  
+  .content {
+    margin-left: 0;
+    width: 100%;
+    padding: 10px;
+  }
+  
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .wrapper {
+    gap: 15px;
+  }
+  
+  /* Ensure rightbar stays hidden on mobile */
+  .side {
+    display: none;
+  }
+}
+
+/* Small Mobile Styles */
+@media screen and (max-width: 480px) {
+  .content {
+    padding: 8px;
+  }
+  
+  .cards {
+    gap: 10px;
+  }
+  
+  .wrapper {
+    gap: 10px;
+  }
+  
+  .menu {
+    width: 250px;
+  }
+  
+  /* Ensure rightbar stays hidden on small mobile */
+  .side {
+    display: none;
+  }
 }
