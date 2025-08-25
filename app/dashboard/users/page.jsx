@@ -94,6 +94,73 @@ async function UsersPage({ searchParams }) {
           </tbody>
         </table>
 
+        {/* Mobile Cards - Add this section when you want mobile responsiveness */}
+        <div className={styles.mobileCards}>
+          {users.length > 0 ? (
+            users.map((user) => {
+              const id = String(user._id ?? user.id ?? "");
+              const created = user.createdAt
+                ? new Date(user.createdAt).toString().slice(4, 16)
+                : "";
+
+              return (
+                <div key={`card-${id}`} className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <Image
+                      src={user.img || "/noavatar.png"}
+                      alt=""
+                      width={50}
+                      height={50}
+                      className={styles.userImage}
+                    />
+                    <div className={styles.cardUserInfo}>
+                      <h3>{user.username}</h3>
+                      <p>{user.email}</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.cardBody}>
+                    <div className={styles.cardField}>
+                      <span className={styles.cardLabel}>Created At</span>
+                      <span className={styles.cardValue}>{created}</span>
+                    </div>
+
+                    <div className={styles.cardField}>
+                      <span className={styles.cardLabel}>Role</span>
+                      <span className={styles.cardValue}>
+                        {user.isAdmin ? "Admin" : "Client"}
+                      </span>
+                    </div>
+
+                    <div className={styles.cardField}>
+                      <span className={styles.cardLabel}>Status</span>
+                      <span className={styles.cardValue}>
+                        {user.isActive ? "Active" : "Passive"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.cardActions}>
+                    <Link href={`/dashboard/users/${id}`}>
+                      <button className={`${styles.button} ${styles.view}`}>
+                        View
+                      </button>
+                    </Link>
+                    <form action={deleteUser} style={{ display: "inline" }}>
+                      <input type="hidden" name="id" value={id} />
+                      <button className={`${styles.button} ${styles.delete}`}>
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className={styles.noResults}>No users found</div>
+          )}
+        </div>
+
         <Pagination count={count} />
       </div>
     );

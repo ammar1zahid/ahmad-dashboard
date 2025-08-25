@@ -1,7 +1,6 @@
 import { updateUser } from "@/app/lib/actions";
 import { fetchUser } from "@/app/lib/data";
 import styles from "../../../components/dashboard/users/singleUser/singleUser.module.css";
-import Image from "next/image";
 
 const SingleUserPage = async (props) => {
   const params = await props.params;
@@ -20,15 +19,10 @@ const SingleUserPage = async (props) => {
   const address = user.address ?? "";
   const isAdmin = !!user.isAdmin;
   const isActive = !!user.isActive;
-  const imgSrc = user.img || "/noavatar.png";
 
   return (
     <div className={styles.container}>
       <div className={styles.infoContainer}>
-        <div className={styles.imgContainer}>
-          {/* .imgContainer must have position:relative for Image fill */}
-          <Image src={imgSrc} alt="" fill />
-        </div>
         <div className={styles.username}>{username}</div>
       </div>
 
