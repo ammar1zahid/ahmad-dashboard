@@ -1,11 +1,14 @@
+// Footer Component (footer.jsx)
 import styles from "./footer.module.css";
 
 const Footer = () => {
   return (
-    <div className={styles.container}>
-      <div className={styles.logo}>Ammar Zahid</div>
-      <div className={styles.text}>© All rights reserved.</div>
-    </div>
+    <footer className={styles.container}>
+      <div className={styles.content}>
+        <div className={styles.logo}>Ammar Zahid</div>
+        <div className={styles.text}>© 2024 All rights reserved.</div>
+      </div>
+    </footer>
   );
 };
 

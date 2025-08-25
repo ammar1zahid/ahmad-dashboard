@@ -63,8 +63,12 @@
   background-color: var(--bg);
   overflow-y: auto;
   overflow-x: hidden;
+
+  /* ensure this area is a column that fills the viewport */
   display: flex;
   flex-direction: column;
+  min-height: 100vh;   /* <-- ADDED */
+  gap: 20px;
 }
 
 /* Main dashboard content */

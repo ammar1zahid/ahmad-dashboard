@@ -168,23 +168,27 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.chartCard}>
           <h2 className={styles.chartTitle}>Payment Methods</h2>
           <div className={styles.pieChart}>
-            {Object.entries(paymentMethods).map(([method, count]) => {
-              const percentage = ((count / totalSales) * 100).toFixed(1);
-              return (
-                <div key={method} className={styles.pieItem}>
-                  <div className={styles.pieColor}></div>
-                  <span className={styles.pieLabel}>
-                    {method.charAt(0).toUpperCase() + method.slice(1)}
-                  </span>
-                  <span className={styles.pieValue}>{percentage}%</span>
-                </div>
-              );
-            })}
+            {Object.entries(paymentMethods).length > 0 ? (
+              Object.entries(paymentMethods).map(([method, count]) => {
+                const percentage = ((count / totalSales) * 100).toFixed(1);
+                return (
+                  <div key={method} className={styles.pieItem}>
+                    <div className={styles.pieColor}></div>
+                    <span className={styles.pieLabel}>
+                      {method.charAt(0).toUpperCase() + method.slice(1)}
+                    </span>
+                    <span className={styles.pieValue}>{percentage}%</span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className={styles.noData}>No payment data available</div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Top Selling Items */}
+      {/* Top Performing Sellers */}
       <div className={styles.tableCard}>
         <h2 className={styles.tableTitle}>Top Performing Sellers</h2>
         <div className={styles.table}>
@@ -195,25 +199,32 @@ const AnalyticsPage = async ({ searchParams }) => {
             <div className={styles.tableCell}>Avg Order Value</div>
             <div className={styles.tableCell}>Role</div>
           </div>
-          {topSellers.map((seller) => (
-            <div key={seller.id} className={styles.tableRow}>
-              <div className={styles.tableCell}>
-                <div className={styles.sellerInfo}>
-                  <span className={styles.sellerName}>{seller.name}</span>
-                  <span className={styles.sellerEmail}>{seller.email}</span>
+          {topSellers.length > 0 ? (
+            topSellers.map((seller) => (
+              <div key={seller.id} className={styles.tableRow}>
+                <div className={styles.tableCell} data-label="Seller">
+                  <div className={styles.sellerInfo}>
+                    <span className={styles.sellerName}>{seller.name}</span>
+                    <span className={styles.sellerEmail}>{seller.email}</span>
+                  </div>
+                </div>
+                <div className={styles.tableCell} data-label="Total Sales">
+                  {seller.totalSales}
+                </div>
+                <div className={styles.tableCell} data-label="Total Revenue">
+                  ${seller.totalRevenue.toFixed(2)}
+                </div>
+                <div className={styles.tableCell} data-label="Avg Order Value">
+                  ${seller.averageOrderValue.toFixed(2)}
+                </div>
+                <div className={styles.tableCell} data-label="Role">
+                  <span className={`${styles.role} ${seller.isAdmin ? styles.admin : styles.seller}`}>
+                    {seller.isAdmin ? 'Admin' : 'Seller'}
+                  </span>
                 </div>
               </div>
-              <div className={styles.tableCell}>{seller.totalSales}</div>
-              <div className={styles.tableCell}>${seller.totalRevenue.toFixed(2)}</div>
-              <div className={styles.tableCell}>${seller.averageOrderValue.toFixed(2)}</div>
-              <div className={styles.tableCell}>
-                <span className={`${styles.role} ${seller.isAdmin ? styles.admin : styles.seller}`}>
-                  {seller.isAdmin ? 'Admin' : 'Seller'}
-                </span>
-              </div>
-            </div>
-          ))}
-          {topSellers.length === 0 && (
+            ))
+          ) : (
             <div className={styles.noData}>No seller data available</div>
           )}
         </div>
@@ -228,14 +239,21 @@ const AnalyticsPage = async ({ searchParams }) => {
             <div className={styles.tableCell}>Quantity Sold</div>
             <div className={styles.tableCell}>Revenue</div>
           </div>
-          {topItems.map((item, index) => (
-            <div key={index} className={styles.tableRow}>
-              <div className={styles.tableCell}>{item.title}</div>
-              <div className={styles.tableCell}>{item.quantity}</div>
-              <div className={styles.tableCell}>${item.revenue.toFixed(2)}</div>
-            </div>
-          ))}
-          {topItems.length === 0 && (
+          {topItems.length > 0 ? (
+            topItems.map((item, index) => (
+              <div key={index} className={styles.tableRow}>
+                <div className={styles.tableCell} data-label="Item">
+                  {item.title}
+                </div>
+                <div className={styles.tableCell} data-label="Quantity Sold">
+                  {item.quantity}
+                </div>
+                <div className={styles.tableCell} data-label="Revenue">
+                  ${item.revenue.toFixed(2)}
+                </div>
+              </div>
+            ))
+          ) : (
             <div className={styles.noData}>No items data available</div>
           )}
         </div>
@@ -252,24 +270,29 @@ const AnalyticsPage = async ({ searchParams }) => {
             <div className={styles.tableCell}>Total</div>
             <div className={styles.tableCell}>Status</div>
           </div>
-          {sales.slice(0, 10).map((sale) => (
-            <div key={sale.id} className={styles.tableRow}>
-              <div className={styles.tableCell}>
-                {sale.createdAt ? new Date(sale.createdAt).toLocaleDateString() : 'N/A'}
+          {sales.length > 0 ? (
+            sales.slice(0, 10).map((sale) => (
+              <div key={sale.id} className={styles.tableRow}>
+                <div className={styles.tableCell} data-label="Date">
+                  {sale.createdAt ? new Date(sale.createdAt).toLocaleDateString() : 'N/A'}
+                </div>
+                <div className={styles.tableCell} data-label="Items">
+                  {sale.items.length}
+                </div>
+                <div className={styles.tableCell} data-label="Payment">
+                  {sale.paymentMethod.charAt(0).toUpperCase() + sale.paymentMethod.slice(1)}
+                </div>
+                <div className={styles.tableCell} data-label="Total">
+                  ${sale.total.toFixed(2)}
+                </div>
+                <div className={styles.tableCell} data-label="Status">
+                  <span className={`${styles.status} ${styles[sale.status]}`}>
+                    {sale.status}
+                  </span>
+                </div>
               </div>
-              <div className={styles.tableCell}>{sale.items.length}</div>
-              <div className={styles.tableCell}>
-                {sale.paymentMethod.charAt(0).toUpperCase() + sale.paymentMethod.slice(1)}
-              </div>
-              <div className={styles.tableCell}>${sale.total.toFixed(2)}</div>
-              <div className={styles.tableCell}>
-                <span className={`${styles.status} ${styles[sale.status]}`}>
-                  {sale.status}
-                </span>
-              </div>
-            </div>
-          ))}
-          {sales.length === 0 && (
+            ))
+          ) : (
             <div className={styles.noData}>No sales data available</div>
           )}
         </div>

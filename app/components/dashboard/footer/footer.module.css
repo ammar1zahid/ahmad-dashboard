@@ -1,15 +1,64 @@
+/* footer.module.css */
 .container {
+  width: 100%;
+  background: var(--bgSoft);
+  border-top: 1px solid var(--border);
+  margin-top: auto; /* This pushes footer to bottom */
+  position: relative; /* Changed from any potential fixed/absolute positioning */
+  z-index: 1; /* Lower z-index to prevent overlapping */
+}
+
+.content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
   color: var(--textSoft);
+  gap: 1rem;
 }
 
 .logo {
-  font-weight: bold;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  color: var(--text);
+  letter-spacing: 0.5px;
 }
 
 .text {
-  font-size: 12px;
+  font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+  color: var(--textSoft);
+  white-space: nowrap;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .logo {
+    margin-bottom: 0.25rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .content {
+    padding: 0.75rem;
+  }
+  
+  .text {
+    font-size: 0.7rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .container {
+    display: none;
+  }
 }
