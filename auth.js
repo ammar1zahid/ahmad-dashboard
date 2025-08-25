@@ -9,6 +9,7 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        console.log("[NextAuth jwt] user:", user.username);//testing
         token.id = user.id;
         token.username = user.username;
         token.img = user.img;

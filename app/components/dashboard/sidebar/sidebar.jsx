@@ -33,13 +33,12 @@ export default function Sidebar() {
 
 const handleSignOut = async () => {
   try {
-    // Build callbackUrl with this precedence:
-    // 1) NEXT_PUBLIC_NEXTLOGOUT_URL (read at build time, available in client)
-    // 2) runtime window.location.origin + "/login" (browser)
-    // 3) fallback to NEXTAUTH_URL or localhost
-    const envLogout = process.env.NEXT_PUBLIC_NEXTLOGOUT_URL; // set this in Vercel (Production)
+    // Prefer public env var if available (set NEXT_PUBLIC_NEXTLOGOUT_URL in Vercel)
+    const envLogout = process.env.NEXT_PUBLIC_NEXTLOGOUT_URL;
     const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXTAUTH_URL || "http://localhost:3000";
     const callbackUrl = envLogout || new URL("/login", origin).toString();
+
+    console.log("signOut callbackUrl:", callbackUrl, "envLogout:", envLogout, "NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
 
     await signOut({ callbackUrl });
   } catch (err) {

@@ -19,6 +19,8 @@ export const nodeProviders = [
         console.log("[auth.node] authorize called with no credentials");
         return null;
       }
+       
+      console.log("[auth.node] authorize called with:", credentials?.username);//testing
 
       await connect();
 
@@ -38,6 +40,8 @@ export const nodeProviders = [
         console.log("[auth.node] wrong password for:", credentials.username);
         return null;
       }
+
+      console.log("[auth.node] authorize success for:", user._id.toString());//testing
 
       return {
         id: user._id.toString(),

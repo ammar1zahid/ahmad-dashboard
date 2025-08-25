@@ -20,13 +20,10 @@ export default function LoginForm() {
       const username = form.get("username");
       const password = form.get("password");
 
-      // determine origin safely (browser only)
-      const origin =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : process.env.NEXTAUTH_URL || "";
+      const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXTAUTH_URL || "";
 
-      // attempt sign-in (do not let NextAuth auto-redirect; we'll handle it client-side)
+      // Let server handle redirect OR handle client-side. We'll keep redirect false
+      // so we can inspect the response and then navigate using absolute URL.
       const res = await signIn("credentials", {
         redirect: false,
         username,
@@ -41,7 +38,7 @@ export default function LoginForm() {
         return;
       }
 
-      // build absolute dashboard URL and navigate there
+      // Build absolute dashboard URL and navigate
       const callbackUrl = new URL("/dashboard", origin).toString();
       router.replace(callbackUrl);
     } catch (err) {
