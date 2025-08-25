@@ -106,7 +106,7 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.metricCard}>
           <div className={styles.metricIcon}>💰</div>
           <div className={styles.metricContent}>
-            <h3 className={styles.metricValue}>${totalRevenue.toFixed(2)}</h3>
+            <h3 className={styles.metricValue}>Rs{totalRevenue.toFixed(2)}</h3>
             <p className={styles.metricLabel}>Total Revenue</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.metricCard}>
           <div className={styles.metricIcon}>💳</div>
           <div className={styles.metricContent}>
-            <h3 className={styles.metricValue}>${averageOrderValue.toFixed(2)}</h3>
+            <h3 className={styles.metricValue}>Rs{averageOrderValue.toFixed(2)}</h3>
             <p className={styles.metricLabel}>Average Order Value</p>
           </div>
         </div>
@@ -130,7 +130,7 @@ const AnalyticsPage = async ({ searchParams }) => {
         <div className={styles.metricCard}>
           <div className={styles.metricIcon}>🏷️</div>
           <div className={styles.metricContent}>
-            <h3 className={styles.metricValue}>${totalTax.toFixed(2)}</h3>
+            <h3 className={styles.metricValue}>Rs{totalTax.toFixed(2)}</h3>
             <p className={styles.metricLabel}>Total Tax Collected</p>
           </div>
         </div>
@@ -152,7 +152,7 @@ const AnalyticsPage = async ({ searchParams }) => {
                     <div 
                       className={styles.bar}
                       style={{ height: `${height}px` }}
-                      title={`$${data.revenue.toFixed(2)}`}
+                      title={`Rs${data.revenue.toFixed(2)}`}
                     ></div>
                     <span className={styles.barLabel}>
                       {new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}
@@ -212,10 +212,10 @@ const AnalyticsPage = async ({ searchParams }) => {
                   {seller.totalSales}
                 </div>
                 <div className={styles.tableCell} data-label="Total Revenue">
-                  ${seller.totalRevenue.toFixed(2)}
+                  Rs{seller.totalRevenue.toFixed(2)}
                 </div>
                 <div className={styles.tableCell} data-label="Avg Order Value">
-                  ${seller.averageOrderValue.toFixed(2)}
+                  Rs{seller.averageOrderValue.toFixed(2)}
                 </div>
                 <div className={styles.tableCell} data-label="Role">
                   <span className={`${styles.role} ${seller.isAdmin ? styles.admin : styles.seller}`}>
@@ -249,7 +249,7 @@ const AnalyticsPage = async ({ searchParams }) => {
                   {item.quantity}
                 </div>
                 <div className={styles.tableCell} data-label="Revenue">
-                  ${item.revenue.toFixed(2)}
+                  Rs{item.revenue.toFixed(2)}
                 </div>
               </div>
             ))
@@ -283,7 +283,7 @@ const AnalyticsPage = async ({ searchParams }) => {
                   {sale.paymentMethod.charAt(0).toUpperCase() + sale.paymentMethod.slice(1)}
                 </div>
                 <div className={styles.tableCell} data-label="Total">
-                  ${sale.total.toFixed(2)}
+                  Rs{sale.total.toFixed(2)}
                 </div>
                 <div className={styles.tableCell} data-label="Status">
                   <span className={`${styles.status} ${styles[sale.status]}`}>

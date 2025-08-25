@@ -85,7 +85,8 @@ const ProductsPage = async ({ searchParams }) => {
                       <div className={styles.product}>
                         <div className={styles.productImageContainer}>
                           <Image
-                            src={product.img || "/noproduct.jpg"}
+                            // src={product.img || "/noproduct.jpg"}
+                            src={product.img || "/product.png"}
                             alt={product.title || "Product"}
                             width={50}
                             height={50}
