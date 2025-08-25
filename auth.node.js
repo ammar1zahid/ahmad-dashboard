@@ -20,7 +20,7 @@ export const nodeProviders = [
         return null;
       }
        
-      console.log("[auth.node] authorize called with:", credentials?.username);//testing
+      // console.log("[auth.node] authorize called with:", credentials?.username);//testing
 
       await connect();
 
@@ -41,7 +41,7 @@ export const nodeProviders = [
         return null;
       }
 
-      console.log("[auth.node] authorize success for:", user._id.toString());//testing
+      // console.log("[auth.node] authorize success for:", user._id.toString());//testing
 
       return {
         id: user._id.toString(),
