@@ -355,7 +355,7 @@ export const fetchSale = async (id) => {
 // };
 
 
-export const fetchSales = async ({ q = "", page = 1, limit = 20, sellerId = null } = {}) => {
+export const fetchSales = async ({ q = "", page = 1, limit = 10, sellerId = null } = {}) => {
   try {
     await connect();
     page = parseInt(page, 10) || 1;
