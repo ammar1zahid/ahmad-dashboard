@@ -5,7 +5,6 @@ import { Product, User , Customer , Sale } from "./models";
 import connect from "./utils";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
-import requireAdmin from "./middleware/adminOnly";
 
 // ===========================
 // User Actions
@@ -18,7 +17,7 @@ export async function addUser(formData) {
 
   try {
     await connect();
-    await requireAdmin();
+
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -50,7 +49,7 @@ export async function updateUser(formData) {
 
   try {
     await connect();
-    await requireAdmin();
+
 
     await User.findByIdAndUpdate(id, {
       username,
@@ -75,7 +74,7 @@ export async function deleteUser(formData) {
 
   try {
     await connect();
-    await requireAdmin();
+
 
     await User.findByIdAndDelete(id);
   } catch (err) {
@@ -114,7 +113,7 @@ export async function addProduct(formData) {
 
   try {
     await connect();
-    await requireAdmin();
+
 
     const newProduct = new Product({
       title,
@@ -157,7 +156,7 @@ export async function updateProduct(formData) {
 
   try {
     await connect();
-    await requireAdmin();
+
 
     const product = await Product.findById(id);
     if (!product) throw new Error("Product not found");
@@ -189,7 +188,7 @@ export async function deleteProduct(formData) {
 
   try {
     await connect();
-    await requireAdmin();
+
     await Product.findByIdAndDelete(id);
   } catch (err) {
     console.error(err);
@@ -313,7 +312,7 @@ export async function updateCustomerFromModal(id, data) {
 
 // Delete Customer
 export async function deleteCustomer(formData) {
-  await requireAdmin();
+
   const { id } = Object.fromEntries(formData);
 
   if (!id) throw new Error("Customer id is required");
@@ -337,7 +336,7 @@ export async function deleteCustomer(formData) {
 // ===========================
 
 export async function updateSaleFromModal(formData) {
-  await requireAdmin();
+
   // normalize incoming data whether it's FormData or plain object
   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
   const {
@@ -654,8 +653,8 @@ export async function createSaleFromModal(saleData = {}) {
 
 // server action: delete sale using transaction to restore stock atomically
 export async function deleteSaleFromModal(formData) {
-  await requireAdmin();
   "use server";
+
   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
   const id = data.id;
   if (!id) throw new Error("Sale id is required");
