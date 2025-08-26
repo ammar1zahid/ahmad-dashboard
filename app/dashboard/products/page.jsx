@@ -6,6 +6,7 @@ import Image from "next/image";
 import Pagination from "@/app/components/dashboard/pagination/pagination";
 import { fetchProducts } from "@/app/lib/data";
 import { deleteProduct } from "@/app/lib/actions";
+import AdminOnly from "../../components/dashboard/auth/AdminOnly";
 export const dynamic = "force-dynamic";
 
 const ProductsPage = async ({ searchParams }) => {
@@ -34,7 +35,6 @@ const ProductsPage = async ({ searchParams }) => {
     }).format(num);
   };
 
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -52,12 +52,15 @@ const ProductsPage = async ({ searchParams }) => {
 
       <div className={styles.top}>
         <Search placeholder="Search for a product..." />
+        <AdminOnly hide={true}>
+
         <Link href="/dashboard/products/add">
           <button className={styles.addButton}>
             <span className={styles.addIcon}>+</span>
             Add New Product
           </button>
         </Link>
+        </AdminOnly>
       </div>
 
       <div className={styles.tableContainer}>
@@ -77,7 +80,9 @@ const ProductsPage = async ({ searchParams }) => {
             {products.length > 0 ? (
               products.map((product) => {
                 const id = String(product._id ?? product.id ?? "");
-                const created = product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "";
+                const created = product.createdAt
+                  ? new Date(product.createdAt).toLocaleDateString()
+                  : "";
 
                 return (
                   <tr key={id}>
@@ -94,14 +99,26 @@ const ProductsPage = async ({ searchParams }) => {
                           />
                         </div>
                         <div className={styles.productInfo}>
-                          <h3 className={styles.productTitle}>{product.title}</h3>
+                          <h3 className={styles.productTitle}>
+                            {product.title}
+                          </h3>
                           <p className={styles.productDesc}>
-                            {product.desc?.length > 50 ? `${product.desc.substring(0, 50)}...` : product.desc}
+                            {product.desc?.length > 50
+                              ? `${product.desc.substring(0, 50)}...`
+                              : product.desc}
                           </p>
                           {(product.color || product.size) && (
                             <div className={styles.productVariants}>
-                              {product.color && <span className={styles.variant}>Color: {product.color}</span>}
-                              {product.size && <span className={styles.variant}>Size: {product.size}</span>}
+                              {product.color && (
+                                <span className={styles.variant}>
+                                  Color: {product.color}
+                                </span>
+                              )}
+                              {product.size && (
+                                <span className={styles.variant}>
+                                  Size: {product.size}
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
@@ -109,7 +126,11 @@ const ProductsPage = async ({ searchParams }) => {
                     </td>
 
                     <td>
-                      <span className={`${styles.category} ${styles[product.category] || styles.general}`}>
+                      <span
+                        className={`${styles.category} ${
+                          styles[product.category] || styles.general
+                        }`}
+                      >
                         {product.category || "General"}
                       </span>
                     </td>
@@ -118,11 +139,15 @@ const ProductsPage = async ({ searchParams }) => {
                       <div className={styles.purchaseInfo}>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Total:</span>
-                          <span className={styles.infoValue}>{formatCurrency(product.purchasePrice)}</span>
+                          <span className={styles.infoValue}>
+                            {formatCurrency(product.purchasePrice)}
+                          </span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Per Item:</span>
-                          <span className={styles.infoValue}>{formatCurrency(product.itemPrice)}</span>
+                          <span className={styles.infoValue}>
+                            {formatCurrency(product.itemPrice)}
+                          </span>
                         </div>
                       </div>
                     </td>
@@ -131,20 +156,28 @@ const ProductsPage = async ({ searchParams }) => {
                       <div className={styles.inventoryInfo}>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Units:</span>
-                          <span className={styles.infoValue}>{product.units || 0}</span>
+                          <span className={styles.infoValue}>
+                            {product.units || 0}
+                          </span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Items/Unit:</span>
-                          <span className={styles.infoValue}>{product.itemsPerUnit || 0}</span>
+                          <span className={styles.infoValue}>
+                            {product.itemsPerUnit || 0}
+                          </span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Total Items:</span>
-                          <span className={styles.infoValue}>{product.totalItems || 0}</span>
+                          <span className={styles.infoValue}>
+                            {product.totalItems || 0}
+                          </span>
                         </div>
                         {product.extraItems > 0 && (
                           <div className={styles.infoItem}>
                             <span className={styles.infoLabel}>Extra:</span>
-                            <span className={styles.infoValue}>+{product.extraItems}</span>
+                            <span className={styles.infoValue}>
+                              +{product.extraItems}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -155,18 +188,31 @@ const ProductsPage = async ({ searchParams }) => {
                         {product.itemSalePrice ? (
                           <>
                             <div className={styles.infoItem}>
-                              <span className={styles.infoLabel}>Sale Price:</span>
-                              <span className={styles.infoValue}>{formatCurrency(product.itemSalePrice)}</span>
+                              <span className={styles.infoLabel}>
+                                Sale Price:
+                              </span>
+                              <span className={styles.infoValue}>
+                                {formatCurrency(product.itemSalePrice)}
+                              </span>
                             </div>
                             <div className={styles.infoItem}>
-                              <span className={styles.infoLabel}>Profit/Item:</span>
-                              <span className={`${styles.infoValue} ${styles.profit}`}>
-                                {formatCurrency(Number(product.itemSalePrice ?? 0) - Number(product.itemPrice ?? 0))}
+                              <span className={styles.infoLabel}>
+                                Profit/Item:
+                              </span>
+                              <span
+                                className={`${styles.infoValue} ${styles.profit}`}
+                              >
+                                {formatCurrency(
+                                  Number(product.itemSalePrice ?? 0) -
+                                    Number(product.itemPrice ?? 0)
+                                )}
                               </span>
                             </div>
                           </>
                         ) : (
-                          <span className={styles.noPrice}>No sale price set</span>
+                          <span className={styles.noPrice}>
+                            No sale price set
+                          </span>
                         )}
                       </div>
                     </td>
@@ -177,28 +223,43 @@ const ProductsPage = async ({ searchParams }) => {
 
                     <td>
                       <div className={styles.buttons}>
-                        <Link href={`/dashboard/products/${id}`}>
-                          <button className={`${styles.button} ${styles.view}`} title="View Details">
-                            View
-                          </button>
-                        </Link>
-                        <Link href={`/dashboard/products/${id}`}>
-                          <button className={`${styles.button} ${styles.edit}`} title="Edit Product">
-                            Edit
-                          </button>
-                        </Link>
+                        <AdminOnly hide={false}>
+                          <Link href={`/dashboard/products/${id}`}>
+                            <button
+                              className={`${styles.button} ${styles.view}`}
+                              title="View Details"
+                            >
+                              View
+                            </button>
+                          </Link>
+                        </AdminOnly>
+                        <AdminOnly hide={false}>
+                          <Link href={`/dashboard/products/${id}`}>
+                            <button
+                              className={`${styles.button} ${styles.edit}`}
+                              title="Edit Product"
+                            >
+                              Edit
+                            </button>
+                          </Link>
+                        </AdminOnly>
 
                         {/* Server-action form — no client event handlers here */}
-                        <form action={deleteProduct} className={styles.deleteForm}>
-                          <input type="hidden" name="id" value={id} />
-                          <button
-                            type="submit"
-                            className={`${styles.button} ${styles.delete}`}
-                            title="Delete Product"
+                        <AdminOnly hide={false}>
+                          <form
+                            action={deleteProduct}
+                            className={styles.deleteForm}
                           >
-                            Delete
-                          </button>
-                        </form>
+                            <input type="hidden" name="id" value={id} />
+                            <button
+                              type="submit"
+                              className={`${styles.button} ${styles.delete}`}
+                              title="Delete Product"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        </AdminOnly>
                       </div>
                     </td>
                   </tr>
@@ -212,7 +273,9 @@ const ProductsPage = async ({ searchParams }) => {
                     <h3>No products found</h3>
                     <p>Get started by adding your first product</p>
                     <Link href="/dashboard/products/add">
-                      <button className={styles.addButton}>Add New Product</button>
+                      <button className={styles.addButton}>
+                        Add New Product
+                      </button>
                     </Link>
                   </div>
                 </td>

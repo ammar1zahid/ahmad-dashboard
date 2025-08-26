@@ -437,6 +437,21 @@ th {
   top: 6px;
 }
 
+
+.admin-disabled,
+button.admin-disabled,
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none; /* prevents clicks on disabled buttons */
+}
+
+/* form gets a subtle disabled look (it won't submit because we preventDefault) */
+form.admin-disabled {
+  opacity: 0.85;
+}
+
+
 /* Animation utilities */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

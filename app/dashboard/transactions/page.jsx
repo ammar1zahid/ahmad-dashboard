@@ -6,18 +6,19 @@ import styles from "../../components/transactions/transactions.module.css";
 import Link from "next/link";
 import Pagination from "@/app/components/dashboard/pagination/pagination";
 import { fetchSales } from "@/app/lib/data";
-import { deleteSaleFromModal } from "@/app/lib/actions"; // wrapper action that accepts FormData
+import { deleteSaleFromModal } from "@/app/lib/actions";
+import AdminOnly from "../../components/dashboard/auth/AdminOnly";
 
 // Helper function to get status style class
 function getStatusClass(status) {
   switch (status?.toLowerCase()) {
-    case 'completed':
+    case "completed":
       return styles.statusCompleted;
-    case 'pending':
+    case "pending":
       return styles.statusPending;
-    case 'cancelled':
+    case "cancelled":
       return styles.statusCancelled;
-    case 'refunded':
+    case "refunded":
       return styles.statusRefunded;
     default:
       return styles.statusCompleted; // default fallback
@@ -31,8 +32,9 @@ async function TransactionsPage({ searchParams }) {
     const page = Number(params?.page) || 1;
     const limit = Number(params?.limit) || 10;
 
-    const { count = 0, sales = [] } = (await fetchSales({ q, page, limit })) || {};
-    
+    const { count = 0, sales = [] } =
+      (await fetchSales({ q, page, limit })) || {};
+
     return (
       <div className={styles.container}>
         <div className={styles.top}>
@@ -59,58 +61,78 @@ async function TransactionsPage({ searchParams }) {
             {sales.length > 0 ? (
               sales.map((sale) => {
                 const id = String(sale.id ?? "");
-                const created = sale.createdAt ? new Date(sale.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : "";
+                const created = sale.createdAt
+                  ? new Date(sale.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "";
                 const customerName = sale.customer?.name ?? "Walk-in";
-                const itemsCount = Array.isArray(sale.items) ? sale.items.length : 0;
+                const itemsCount = Array.isArray(sale.items)
+                  ? sale.items.length
+                  : 0;
                 const status = sale.status || "completed";
 
                 return (
                   <tr key={id}>
                     <td>
-                      <span className={styles.txnId}>
-                        {id.slice(0, 8)}...
-                      </span>
+                      <span className={styles.txnId}>{id.slice(0, 8)}...</span>
                     </td>
                     <td>{customerName}</td>
                     <td>
                       <span className={styles.itemsCount}>
-                        {itemsCount} item{itemsCount !== 1 ? 's' : ''}
+                        {itemsCount} item{itemsCount !== 1 ? "s" : ""}
                       </span>
                     </td>
                     <td>
                       <span className={styles.amount}>
-                        ${sale.amountPaid?.toFixed ? sale.amountPaid.toFixed(2) : Number(sale.amountPaid || 0).toFixed(2)}
+                        $
+                        {sale.amountPaid?.toFixed
+                          ? sale.amountPaid.toFixed(2)
+                          : Number(sale.amountPaid || 0).toFixed(2)}
                       </span>
                     </td>
                     <td>{(sale.paymentMethod || "").toString()}</td>
                     <td>
-                      <span className={`${styles.status} ${getStatusClass(status)}`}>
+                      <span
+                        className={`${styles.status} ${getStatusClass(status)}`}
+                      >
                         {status}
                       </span>
                     </td>
                     <td>{created}</td>
                     <td>
                       <div className={styles.buttons}>
-                        <Link href={`/dashboard/transactions/${id}`}>
-                          <button className={`${styles.button} ${styles.view}`}>View</button>
-                        </Link>
-
-                        <form action={deleteSaleFromModal} style={{ display: 'inline' }}>
-                          <input type="hidden" name="id" value={id} />
-                          <button 
-                            type="submit"
-                            className={`${styles.button} ${styles.delete}`}
-                            aria-label={`Delete transaction ${id.slice(0,8)}`}
+                        <AdminOnly hide={false}>
+                          <Link href={`/dashboard/transactions/${id}`}>
+                            <button
+                              className={`${styles.button} ${styles.view}`}
+                            >
+                              View
+                            </button>
+                          </Link>
+                        </AdminOnly>
+                        <AdminOnly hide={false}>
+                          <form
+                            action={deleteSaleFromModal}
+                            style={{ display: "inline" }}
                           >
-                            Delete
-                          </button>
-                        </form>
+                            <input type="hidden" name="id" value={id} />
+                            <button
+                              type="submit"
+                              className={`${styles.button} ${styles.delete}`}
+                              aria-label={`Delete transaction ${id.slice(
+                                0,
+                                8
+                              )}`}
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        </AdminOnly>
                       </div>
                     </td>
                   </tr>

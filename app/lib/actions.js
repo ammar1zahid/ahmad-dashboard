@@ -5,6 +5,7 @@ import { Product, User , Customer , Sale } from "./models";
 import connect from "./utils";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
+import requireAdmin from "./middleware/adminOnly";
 
 // ===========================
 // User Actions
@@ -17,6 +18,7 @@ export async function addUser(formData) {
 
   try {
     await connect();
+    await requireAdmin();
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -48,6 +50,7 @@ export async function updateUser(formData) {
 
   try {
     await connect();
+    await requireAdmin();
 
     await User.findByIdAndUpdate(id, {
       username,
@@ -72,6 +75,7 @@ export async function deleteUser(formData) {
 
   try {
     await connect();
+    await requireAdmin();
 
     await User.findByIdAndDelete(id);
   } catch (err) {
@@ -110,6 +114,7 @@ export async function addProduct(formData) {
 
   try {
     await connect();
+    await requireAdmin();
 
     const newProduct = new Product({
       title,
@@ -152,6 +157,7 @@ export async function updateProduct(formData) {
 
   try {
     await connect();
+    await requireAdmin();
 
     const product = await Product.findById(id);
     if (!product) throw new Error("Product not found");
@@ -183,6 +189,7 @@ export async function deleteProduct(formData) {
 
   try {
     await connect();
+    await requireAdmin();
     await Product.findByIdAndDelete(id);
   } catch (err) {
     console.error(err);
@@ -235,6 +242,7 @@ export async function updateCustomer(formData) {
   try {
     await connect();
 
+
     const customer = await Customer.findById(id);
     if (!customer) throw new Error("Customer not found");
 
@@ -260,6 +268,7 @@ export async function addCustomerFromModal(data) {
   if (!name || !email) throw new Error("Name and email are required");
 
   await connect();
+
 
   const newCustomer = new Customer({ name, email, phone, address });
   const saved = await newCustomer.save();
@@ -304,6 +313,7 @@ export async function updateCustomerFromModal(id, data) {
 
 // Delete Customer
 export async function deleteCustomer(formData) {
+  await requireAdmin();
   const { id } = Object.fromEntries(formData);
 
   if (!id) throw new Error("Customer id is required");
@@ -326,157 +336,8 @@ export async function deleteCustomer(formData) {
 // Sales Actions
 // ===========================
 
-
-
-
-// Create Sale from client (server action)
-// export async function createSaleFromModal(saleData = {}) {
-//   // saleData expected shape:
-//   // { items: [{ productId, title, quantity, price, originalItemPrice, originalPurchasePrice }, ...], ... }
-
-//   // Resolve sellerId from session if possible
-//   let sellerId;
-//   try {
-//     const { getServerSession } = await import("next-auth/next");
-//     const { authOptions } = await import("@/app/api/auth/[...nextauth]/route"); // adjust path if different
-
-//     const session = await getServerSession(authOptions);
-//     if (session?.user?.id) {
-//       sellerId = session.user.id;
-//     } else {
-//       sellerId = saleData.sellerId || undefined;
-//     }
-//   } catch (e) {
-//     sellerId = saleData.sellerId || undefined;
-//   }
-
-//   // Basic validation
-//   if (!Array.isArray(saleData.items) || saleData.items.length === 0) {
-//     throw new Error("Sale must include at least one item");
-//   }
-
-//   // coerce numbers
-//   const subtotal = Number(saleData.subtotal || 0);
-//   const tax = Number(saleData.tax || 0);
-//   const total = Number(saleData.total || 0);
-//   const amountPaid = Number(saleData.amountPaid || 0);
-//   const change = Number(saleData.change || 0);
-
-//   try {
-//     await connect();
-
-//     const newSale = new Sale({
-//       items: saleData.items.map(it => ({
-//         // keep productId as ObjectId on DB write (if provided), but allow string too
-//         productId: it.productId ? it.productId : undefined,
-//         title: it.title ?? "",
-//         quantity: Number(it.quantity || 1),
-//         price: Number(it.price || 0),
-//         originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
-//         originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined
-//       })),
-//       subtotal,
-//       tax,
-//       total,
-//       paymentMethod: saleData.paymentMethod || "cash",
-//       amountPaid,
-//       change,
-//       customer: saleData.customer || undefined,
-//       sellerId: sellerId ? sellerId : undefined,
-//       notes: saleData.notes || undefined,
-//        status: saleData.status || "completed",
-//     });
-
-//     const saved = await newSale.save();
-
-//     // optional: revalidate listing page
-//     try {
-//       const { revalidatePath } = await import("next/cache");
-//       revalidatePath("/sales");
-//     } catch (e) {
-//       // ignore if revalidate not available
-//     }
-
-//     // map saved result to plain serializable object
-//     const mappedItems = (saved.items || []).map(it => ({
-//       productId: it.productId ? String(it.productId) : undefined,
-//       title: it.title ?? "",
-//       quantity: Number(it.quantity || 0),
-//       price: Number(it.price || 0),
-//       originalItemPrice: it.originalItemPrice !== undefined ? Number(it.originalItemPrice) : undefined,
-//       originalPurchasePrice: it.originalPurchasePrice !== undefined ? Number(it.originalPurchasePrice) : undefined,
-//     }));
-
-//     const mappedCustomer = saved.customer
-//       ? {
-//           // handle both saved.customer.id or saved.customer._id shape
-//           id: saved.customer.id ? String(saved.customer.id) : (saved.customer._id ? String(saved.customer._id) : undefined),
-//           name: saved.customer.name ?? "",
-//           email: saved.customer.email ?? "",
-//           phone: saved.customer.phone ?? "",
-//           address: saved.customer.address ?? "",
-//         }
-//       : undefined;
-
-//     return {
-//       id: String(saved._id),
-//       items: mappedItems,
-//       subtotal: Number(saved.subtotal || 0),
-//       tax: Number(saved.tax || 0),
-//       total: Number(saved.total || 0),
-//       paymentMethod: saved.paymentMethod ?? "cash",
-//       amountPaid: Number(saved.amountPaid || 0),
-//       change: Number(saved.change || 0),
-//       customer: mappedCustomer,
-//       sellerId: saved.sellerId ? String(saved.sellerId) : undefined,
-//       createdAt: saved.createdAt ? saved.createdAt.toISOString() : undefined,
-//       updatedAt: saved.updatedAt ? saved.updatedAt.toISOString() : undefined,
-//       notes: saved.notes ?? undefined,
-//     };
-//   } catch (err) {
-//     console.error("createSaleFromModal error:", err);
-//     throw new Error("Failed to save sale!");
-//   }
-// }
-
-
-
-
-// Update existing sale (server action) — expects FormData when used as <form action={updateSaleFromModal}>
-
-
-// export async function updateSaleFromModal(formData) {
-//   "use server";
-//   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
-//   const { id, paymentMethod, amountPaid, notes } = data;
-//   if (!id) throw new Error("Sale id is required");
-
-//   const updateData = {};
-//   if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
-//   if (amountPaid !== undefined && amountPaid !== "") updateData.amountPaid = Number(amountPaid);
-//   if (notes !== undefined) updateData.notes = notes;
-
-//   try {
-//     await connect();
-//     const updated = await Sale.findByIdAndUpdate(id, updateData, { new: true }).lean();
-//     if (!updated) throw new Error("Sale not found");
-//     try {
-//       const { revalidatePath } = await import("next/cache");
-//       revalidatePath("/dashboard/transactions");
-//       revalidatePath(`/dashboard/transactions/${id}`);
-//     } catch (e) {
-//       // ignore if revalidate not available
-//     }
-//     return true;
-//   } catch (err) {
-//     console.error(err);
-//     throw new Error("Failed to update sale!");
-//   }
-// }
-
-
-
 export async function updateSaleFromModal(formData) {
+  await requireAdmin();
   // normalize incoming data whether it's FormData or plain object
   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
   const {
@@ -490,6 +351,7 @@ export async function updateSaleFromModal(formData) {
 
   if (!id) throw new Error("Sale id is required");
 
+  
   // parse numeric inputs (if provided)
   const totalNum = totalAmountRaw !== undefined && totalAmountRaw !== "" ? Number(totalAmountRaw) : undefined;
   const amountPaidNum = amountPaidRaw !== undefined && amountPaidRaw !== "" ? Number(amountPaidRaw) : undefined;
@@ -593,36 +455,11 @@ export async function updateSaleFromModal(formData) {
 }
 
 
-// Delete sale (server action)
-// app/lib/actions.js
-
-// export async function deleteSaleFromModal(formData) {
-//   "use server";
-//   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
-//   const id = data.id;
-//   if (!id) throw new Error("Sale id is required");
-
-//   try {
-//     await connect();
-//     await Sale.findByIdAndDelete(id);
-//     // revalidate the correct path you use in your app:
-//     try {
-//       const { revalidatePath } = await import("next/cache");
-//       revalidatePath("/dashboard/transactions"); // use the route you want refreshed
-//     } catch (e) {
-//       // ignore if revalidate not available
-//     }
-//     return true;
-//   } catch (err) {
-//     console.error(err);
-//     throw new Error("Failed to delete sale!");
-//   }
-// }
-
 
 // server action: create sale using a transaction to avoid race conditions
 export async function createSaleFromModal(saleData = {}) {
   "use server";
+  
 
   // resolve seller id (same as your previous implementation)
   let sellerId;
@@ -817,6 +654,7 @@ export async function createSaleFromModal(saleData = {}) {
 
 // server action: delete sale using transaction to restore stock atomically
 export async function deleteSaleFromModal(formData) {
+  await requireAdmin();
   "use server";
   const data = formData instanceof FormData ? Object.fromEntries(formData) : formData || {};
   const id = data.id;

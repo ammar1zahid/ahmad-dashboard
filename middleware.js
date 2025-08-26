@@ -3,10 +3,7 @@ import { NextResponse } from "next/server";
 
 async function getSessionFromApi(req) {
   try {
-    // forward incoming cookies so /api/auth/session can read them
     const cookie = req.headers.get("cookie") || "";
-
-    // req.nextUrl.origin is available in Next middleware (fallback if not)
     const origin = req.nextUrl?.origin || `${req.nextUrl?.protocol}//${req.headers.get("host")}`;
 
     const resp = await fetch(new URL("/api/auth/session", origin).toString(), {
@@ -14,11 +11,11 @@ async function getSessionFromApi(req) {
         cookie,
         accept: "application/json",
       },
-      next: { revalidate: 0 }, // ensure fresh session
+      next: { revalidate: 0 },
     });
 
     if (!resp.ok) return null;
-    return await resp.json(); // shape: { user, expires } when logged in
+    return await resp.json();
   } catch (err) {
     console.error("middleware getSessionFromApi error:", err);
     return null;
@@ -43,18 +40,43 @@ export async function middleware(req) {
   const isLoggedIn = !!session?.user;
   const isAdmin = !!session?.user?.isAdmin;
 
-  // Root redirect
+  // Root redirect (same as before)
   if (pathname === "/") {
     return NextResponse.redirect(new URL(isLoggedIn ? "/dashboard" : "/login", req.url));
   }
 
-  // Protect dashboard routes (require login + admin)
+  // Allow any logged-in user to view /dashboard and its children.
+  // Previously you required admin here; we no longer do that.
   if (pathname.startsWith("/dashboard")) {
     if (!isLoggedIn) return NextResponse.redirect(new URL("/login", req.url));
-    if (!isAdmin) return NextResponse.redirect(new URL("/login", req.url));
+    // <-- no admin check here so non-admins can access the dashboard
   }
 
-  // Redirect logged-in users away from login page
+  // --- OPTIONAL: Protect specific admin-only paths
+  // If you want middleware to block certain routes for non-admins (extra layer),
+  // list them here. For example: user management add/edit/delete pages.
+  // If you prefer to rely only on server-action checks, you can keep this list empty.
+  const adminOnlyPaths = [
+    // "/dashboard/users/add",
+    // "/dashboard/users", // if you want to protect whole users area
+    // "/dashboard/products/add",
+    // "/dashboard/products/[id]/edit",
+    // "/dashboard/customers/add",
+    // add any other paths that should be admin-only at the middleware level
+  ];
+
+  // Check admin-only list and redirect non-admins if matched
+  if (adminOnlyPaths.length > 0) {
+    for (const p of adminOnlyPaths) {
+      // simple startsWith match — adjust if you need more complex patterns
+      if (pathname.startsWith(p)) {
+        if (!isLoggedIn) return NextResponse.redirect(new URL("/login", req.url));
+        if (!isAdmin) return NextResponse.redirect(new URL("/login", req.url));
+      }
+    }
+  }
+
+  // Redirect logged-in user away from the login page (same as before)
   if (pathname === "/login" && isLoggedIn) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }

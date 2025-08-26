@@ -5,6 +5,7 @@ import Image from "next/image";
 import Pagination from "@/app/components/dashboard/pagination/pagination";
 import { fetchUsers } from "@/app/lib/data";
 import { deleteUser } from "@/app/lib/actions";
+import AdminOnly from "../../components/dashboard/auth/AdminOnly";
 
 // 👇 force runtime rendering
 export const dynamic = "force-dynamic";
@@ -22,9 +23,11 @@ async function UsersPage({ searchParams }) {
       <div className={styles.container}>
         <div className={styles.top}>
           <Search placeholder="Search for a user" />
-          <Link href="/dashboard/users/add">
-            <button className={styles.addButton}>Add New</button>
-          </Link>
+          <AdminOnly hide>
+            <Link href="/dashboard/users/add">
+              <button className={styles.addButton}>Add New</button>
+            </Link>
+          </AdminOnly>
         </div>
 
         <table className={styles.table}>
@@ -66,19 +69,24 @@ async function UsersPage({ searchParams }) {
                     <td>{user.isActive ? "active" : "passive"}</td>
                     <td>
                       <div className={styles.buttons}>
+                        <AdminOnly hide={false}>
+
                         <Link href={`/dashboard/users/${id}`}>
                           <button className={`${styles.button} ${styles.view}`}>
                             View
                           </button>
                         </Link>
-                        <form action={deleteUser}>
-                          <input type="hidden" name="id" value={id} />
-                          <button
-                            className={`${styles.button} ${styles.delete}`}
-                          >
-                            Delete
-                          </button>
-                        </form>
+                        </AdminOnly>
+                        <AdminOnly hide={false}>
+                          <form action={deleteUser}>
+                            <input type="hidden" name="id" value={id} />
+                            <button
+                              className={`${styles.button} ${styles.delete}`}
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        </AdminOnly>
                       </div>
                     </td>
                   </tr>
@@ -141,17 +149,23 @@ async function UsersPage({ searchParams }) {
                   </div>
 
                   <div className={styles.cardActions}>
+                    <AdminOnly hide={false}>
+
                     <Link href={`/dashboard/users/${id}`}>
                       <button className={`${styles.button} ${styles.view}`}>
                         View
                       </button>
                     </Link>
+                    </AdminOnly>
+                    <AdminOnly hide={false}>
+
                     <form action={deleteUser} style={{ display: "inline" }}>
                       <input type="hidden" name="id" value={id} />
                       <button className={`${styles.button} ${styles.delete}`}>
                         Delete
                       </button>
                     </form>
+                    </AdminOnly>
                   </div>
                 </div>
               );

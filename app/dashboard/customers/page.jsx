@@ -2,11 +2,12 @@
 export const dynamic = "force-dynamic";
 
 import Search from "@/app/components/dashboard/search/search";
-import styles from "../../components/customers/customer.module.css"; 
+import styles from "../../components/customers/customer.module.css";
 import Link from "next/link";
 import Pagination from "@/app/components/dashboard/pagination/pagination";
 import { fetchCustomers } from "@/app/lib/data";
 import { deleteCustomer } from "@/app/lib/actions";
+import AdminOnly from "../../components/dashboard/auth/AdminOnly";
 
 async function CustomersPage({ searchParams }) {
   try {
@@ -20,9 +21,11 @@ async function CustomersPage({ searchParams }) {
       <div className={styles.container}>
         <div className={styles.top}>
           <Search placeholder="Search for a customer" />
-          <Link href="/dashboard/customers/add">
-            <button className={styles.addButton}>Add New</button>
-          </Link>
+          <AdminOnly hide={true}>
+            <Link href="/dashboard/customers/add">
+              <button className={styles.addButton}>Add New</button>
+            </Link>
+          </AdminOnly>
         </div>
 
         <table className={styles.table}>
@@ -46,30 +49,33 @@ async function CustomersPage({ searchParams }) {
                 return (
                   <tr key={id}>
                     <td data-label="Name:">
-                      <div className={styles.user}>
-                        {customer.name}
-                      </div>
+                      <div className={styles.user}>{customer.name}</div>
                     </td>
                     <td data-label="Email:">{customer.email}</td>
                     <td data-label="Created:">{created}</td>
                     <td data-label="Phone:">{customer.phone || "-"}</td>
                     <td data-label="Actions:">
                       <div className={styles.buttons}>
-                        <Link href={`/dashboard/customers/${id}`}>
-                          <button className={`${styles.button} ${styles.view}`}>
-                            View
-                          </button>
-                        </Link>
+                        <AdminOnly hide={false}>
+                          <Link href={`/dashboard/customers/${id}`}>
+                            <button
+                              className={`${styles.button} ${styles.view}`}
+                            >
+                              View
+                            </button>
+                          </Link>
+                        </AdminOnly>
+                        <AdminOnly hide={false}>
+                          <form action={deleteCustomer}>
+                            <input type="hidden" name="id" value={id} />
+                            <button
+                              className={`${styles.button} ${styles.delete}`}
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        </AdminOnly>
 
-                        <form action={deleteCustomer}>
-                          <input type="hidden" name="id" value={id} />
-                          <button
-                            className={`${styles.button} ${styles.delete}`}
-                          >
-                            Delete
-                          </button>
-                        </form>
-                        
                         <Link href={`/dashboard/customers/transactions/${id}`}>
                           <button className={`${styles.button} ${styles.view}`}>
                             View Transactions
