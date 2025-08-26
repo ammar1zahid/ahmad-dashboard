@@ -3,66 +3,39 @@
 import styles from './chart.module.css'
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const data = [
-  {
-    name: "Sun",
-    visit: 4000,
-    click: 2400,
-  },
-  {
-    name: "Mon",
-    visit: 3000,
-    click: 1398,
-  },
-  {
-    name: "Tue",
-    visit: 2000,
-    click: 3800,
-  },
-  {
-    name: "Wed",
-    visit: 2780,
-    click: 3908,
-  },
-  {
-    name: "Thu",
-    visit: 1890,
-    click: 4800,
-  },
-  {
-    name: "Fri",
-    visit: 2390,
-    click: 3800,
-  },
-  {
-    name: "Sat",
-    visit: 3490,
-    click: 4300,
-  },
-];
+const Chart = ({ trendData = [] }) => {
+  // trendData is an array like: [{ name: 'Mon', revenue: 123.45, date: '2025-08-19' }, ...]
+  // provide a small fallback if no data
+  const data = (trendData.length > 0)
+    ? trendData
+    : [
+        { name: "Sun", revenue: 0 },
+        { name: "Mon", revenue: 0 },
+        { name: "Tue", revenue: 0 },
+        { name: "Wed", revenue: 0 },
+        { name: "Thu", revenue: 0 },
+        { name: "Fri", revenue: 0 },
+        { name: "Sat", revenue: 0 },
+      ];
 
-const Chart = () => {
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Weekly Recap</h2>
-      <ResponsiveContainer width="100%" height="90%">
+      <h2 className={styles.title}>Weekly Revenue</h2>
+      <ResponsiveContainer width="100%" height={240}>
         <LineChart
-          width={500}
-          height={300}
           data={data}
           margin={{
             top: 5,
             right: 30,
-            left: 20,
+            left: 0,
             bottom: 5,
           }}
         >
           <XAxis dataKey="name" />
           <YAxis />
-          <Tooltip contentStyle={{background:"#151c2c", border:"none"}}/>
+          <Tooltip contentStyle={{ background: "#151c2c", border: "none" }} />
           <Legend />
-          <Line type="monotone" dataKey="visit" stroke="#8884d8" strokeDasharray="5 5" />
-          <Line type="monotone" dataKey="click" stroke="#82ca9d" strokeDasharray="3 4 5 2" />
+          <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} dot />
         </LineChart>
       </ResponsiveContainer>
     </div>

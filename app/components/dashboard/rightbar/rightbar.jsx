@@ -25,7 +25,7 @@ const Rightbar = () => {
             See current stock levels at a glance
           </span>
           <p className={styles.desc}>
-            Quickly review quantities, statuses, and warehouse locations
+            Quickly review quantities and statuses
             for all your products—stay ahead of restocking needs.
           </p>
           <Link href="/dashboard/products">
