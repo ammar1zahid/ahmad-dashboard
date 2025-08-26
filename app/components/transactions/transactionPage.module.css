@@ -1,14 +1,18 @@
-/* singleTransaction.module.css */
-
-/* Following global CSS variables */
+/* Responsive singleTransaction.module.css — updated for all screen sizes
+   Replaces original file. Major goals:
+   - Flexible grid using auto-fit / minmax for graceful wrapping
+   - Cards that span multiple columns only on larger viewports
+   - Table transforms to vertically stacked cards on small screens (uses nth-child labels)
+   - Reduced large paddings on narrow viewports with clamp() for smoother scaling
+   - Improved header wrapping and badge placement
+*/
 
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: clamp(12px, 2.5vw, 32px);
   background: var(--bg);
-  min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
 }
@@ -16,67 +20,63 @@
 /* Header Styles */
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 16px;
   background: var(--bgSoft);
-  padding: 32px;
-  border-radius: 16px;
+  padding: clamp(16px, 2.5vw, 32px);
+  border-radius: 12px;
   box-shadow: 0 4px 6px -1px var(--shadow);
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   border: 1px solid var(--border);
+  flex-wrap: wrap; /* allow wrapping on small screens */
+}
+
+.headerContent {
+  flex: 1 1 320px; /* allow header content to shrink on small screens */
+  min-width: 0;    /* prevent overflow of children like long IDs */
 }
 
 .headerContent h1 {
   margin: 0 0 8px 0;
-  font-size: 28px;
+  font-size: clamp(18px, 2.2vw, 28px);
   font-weight: 700;
   color: var(--text);
 }
 
 .transactionId {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--textSoft);
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   background: var(--bg);
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: 6px;
   display: inline-block;
   border: 1px solid var(--border);
 }
 
 .statusBadge {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  margin-left: auto; /* push badge to the right when space allows */
 }
 
-.statusBadge.completed {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
+.statusBadge.completed { background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.25); }
+.statusBadge.pending   { background: rgba(245,158,11,0.10); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.statusBadge.cancelled { background: rgba(239,68,68,0.10); color: var(--danger); border: 1px solid rgba(239,68,68,0.25); }
 
-.statusBadge.pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.statusBadge.cancelled {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-/* Content Grid */
+/* Responsive Content Grid: uses auto-fit so cards wrap naturally */
 .contentGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(12px, 1.8vw, 24px);
+  align-items: start;
 }
 
-/* Card Base Styles */
+/* Card Base Styles (smaller paddings with clamp)
+   Hover effects are kept but subtle on small screens
+*/
 .summaryCard,
 .customerCard,
 .financialCard,
@@ -86,11 +86,11 @@
 .editCard,
 .pendingBalanceCard {
   background: var(--bgSoft);
-  border-radius: 16px;
-  padding: 32px;
+  border-radius: 12px;
+  padding: clamp(12px, 2vw, 28px);
   box-shadow: 0 4px 6px -1px var(--shadow);
   border: 1px solid var(--border);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .summaryCard:hover,
@@ -99,7 +99,7 @@
 .statsCard:hover,
 .timelineCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px -5px var(--shadow);
+  box-shadow: 0 10px 30px -10px var(--shadow);
 }
 
 .summaryCard h2,
@@ -110,675 +110,141 @@
 .timelineCard h2,
 .editCard h2,
 .pendingBalanceCard h2 {
-  margin: 0 0 24px 0;
-  font-size: 20px;
+  margin: 0 0 16px 0;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
 }
 
-/* Pending Balance Card */
+/* Pending Balance Card — span only on larger viewports */
 .pendingBalanceCard {
-  grid-column: span 2;
-  background: rgba(245, 158, 11, 0.1);
-  border: 2px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.08);
   border-left: 6px solid #f59e0b;
 }
 
-.pendingBalanceCard h2 {
-  color: #f59e0b;
-  border-bottom-color: rgba(245, 158, 11, 0.3);
-}
+.balanceAlert { background: var(--bg); border-radius: 10px; padding: 16px; text-align: center; border: 1px solid rgba(245,158,11,0.12); }
+.balanceAmount { font-size: clamp(20px, 3.2vw, 32px); font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
+.balanceText { font-size: 13px; color: var(--textSoft); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
 
-.balanceAlert {
-  background: var(--bg);
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.balanceAmount {
-  font-size: 32px;
-  font-weight: 700;
-  color: #f59e0b;
-  margin-bottom: 8px;
-}
-
-.balanceText {
-  font-size: 16px;
-  color: var(--textSoft);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Summary Card */
-.summaryGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.summaryItem {
-  text-align: center;
-  padding: 20px;
-  background: var(--bg);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.summaryLabel {
-  display: block;
-  font-size: 14px;
-  color: var(--textSoft);
-  font-weight: 500;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.summaryValue {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text);
-}
+/* Summary Grid — responsive columns */
+.summaryGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.summaryItem { text-align: center; padding: 12px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); }
+.summaryLabel { display:block; font-size:12px; color:var(--textSoft); font-weight:600; margin-bottom:6px; text-transform:uppercase; }
+.summaryValue { display:block; font-size: clamp(18px, 2vw, 24px); font-weight:700; color:var(--text); }
 
 /* Customer Card */
-.customerInfo {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.customerAvatar {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-}
-
-.customerDetails {
-  flex: 1;
-}
-
-.customerName {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.customerEmail,
-.customerPhone {
-  font-size: 14px;
-  color: var(--textSoft);
-  margin-bottom: 2px;
-}
+.customerInfo { display:flex; align-items:center; gap: 14px; }
+.customerAvatar { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:white; flex-shrink:0; }
+.customerDetails { flex: 1 1 auto; min-width: 0; }
+.customerName { font-size:16px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.customerEmail, .customerPhone { font-size:13px; color:var(--textSoft); }
 
 /* Financial Card */
-.financialBreakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.breakdownRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 16px;
-  color: var(--text);
-}
-
-.breakdownRow:last-child {
-  border-bottom: none;
-}
-
-.breakdownRow.total {
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--text);
-  padding-top: 16px;
-  border-top: 2px solid var(--border);
-  margin-top: 8px;
-}
-
-.breakdownRow.remaining {
-  font-weight: 700;
-  font-size: 18px;
-  color: #f59e0b;
-  padding-top: 16px;
-  border-top: 2px solid rgba(245, 158, 11, 0.3);
-  margin-top: 8px;
-  background: rgba(245, 158, 11, 0.1);
-  padding: 16px 12px 12px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.remainingAmount {
-  color: #f59e0b !important;
-  font-weight: 700;
-}
+.financialBreakdown { display:flex; flex-direction:column; gap:10px; }
+.breakdownRow { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text); }
+.breakdownRow.total { font-weight:700; font-size:15px; padding-top:12px; border-top:2px solid var(--border); margin-top:6px; }
+.breakdownRow.remaining { font-weight:700; font-size:15px; color:#f59e0b; padding:12px; background: rgba(245,158,11,0.06); border-radius:8px; border:1px solid rgba(245,158,11,0.12); }
+.remainingAmount { color:#f59e0b !important; font-weight:700; }
 
 /* Stats Card */
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.statItem {
-  text-align: center;
-  padding: 16px;
-  background: var(--bg);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.statValue {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.statLabel {
-  font-size: 12px;
-  color: var(--textSoft);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-}
+.statsGrid { display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+.statItem { text-align:center; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border); }
+.statValue { font-size: clamp(16px, 2vw, 24px); font-weight:700; color:var(--text); margin-bottom:4px; }
+.statLabel { font-size:12px; color:var(--textSoft); text-transform:uppercase; }
 
 /* Items Card */
-.itemsCard {
-  grid-column: span 2;
-}
+.tableContainer { overflow-x:auto; border-radius:10px; border:1px solid var(--border); }
+.itemsTable { width:100%; border-collapse:collapse; background:var(--bgSoft); min-width: 600px; }
+.itemsTable th { background:var(--bg); padding: clamp(8px,1.5vw,16px); text-align:left; font-weight:600; color:var(--text); border-bottom:2px solid var(--border); font-size:12px; text-transform:uppercase; }
+.itemRow { border-bottom:1px solid var(--border); transition: background-color 0.12s ease; }
+.itemRow:hover { background:var(--bg); }
+.itemsTable td { padding: clamp(8px,1.5vw,16px); vertical-align:top; color:var(--text); }
+.productCell { min-width: 160px; }
+.productInfo { display:flex; flex-direction:column; gap:4px; }
+.productName { font-weight:600; color:var(--text); font-size:14px; }
+.productId { font-size:12px; color:var(--textSoft); font-family:'JetBrains Mono','Courier New',monospace; }
+.quantityCell { text-align:center; }
+.quantityBadge { background: rgba(59,130,246,0.10); color:var(--accent); padding:4px 10px; border-radius:10px; font-weight:600; font-size:13px; border:1px solid rgba(59,130,246,0.18); }
+.priceCell { text-align:right; }
+.priceInfo { display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
+.currentPrice { font-weight:600; color:var(--text); }
+.discount { background: rgba(239,68,68,0.12); color:var(--danger); padding:2px 8px; border-radius:6px; font-size:12px; font-weight:600; border:1px solid rgba(239,68,68,0.18); }
+.originalPriceCell { text-align:right; }
+.originalPrice { text-decoration:line-through; color:var(--textSoft); font-size:13px; }
+.regularPrice { color:var(--textSoft); font-size:13px; }
+.totalCell { text-align:right; color:var(--text); font-size:14px; }
 
-.tableContainer {
-  overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
+/* Timeline */
+.timeline { display:flex; flex-direction:column; gap:12px; }
+.timelineItem { display:flex; align-items:center; gap:12px; padding:10px; background:var(--bg); border-radius:10px; border:1px solid var(--border); }
+.timelineIcon { font-size:18px; width:36px; height:36px; background:var(--bgSoft); border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+.timelineLabel { font-size:12px; color:var(--textSoft); font-weight:600; text-transform:uppercase; }
+.timelineValue { font-size:14px; color:var(--text); font-weight:600; }
 
-.itemsTable {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--bgSoft);
-}
+/* Edit card & form */
+.editForm { display:flex; flex-direction:column; gap:14px; }
+.formGroup { display:flex; flex-direction:column; gap:8px; }
+.label { font-weight:700; color:var(--text); font-size:13px; text-transform:uppercase; }
+.input, .select, .textarea { padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; background:var(--bg); color:var(--text); }
+.input:focus, .select:focus, .textarea:focus { outline:none; border-color:var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
+.textarea { resize:vertical; min-height:90px; }
+.formActions { display:flex; gap:12px; padding-top:12px; border-top:1px solid var(--border); }
+.updateBtn { flex:1; background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%); color:white; border:none; padding:12px 16px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; }
+.updateBtn:hover { transform: translateY(-2px); box-shadow:0 8px 25px -5px rgba(59,130,246,0.3); }
 
-.itemsTable th {
-  background: var(--bg);
-  padding: 16px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text);
-  border-bottom: 2px solid var(--border);
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.itemRow {
-  border-bottom: 1px solid var(--border);
-  transition: background-color 0.2s ease;
-}
-
-.itemRow:hover {
-  background: var(--bg);
-}
-
-.itemsTable td {
-  padding: 16px;
-  vertical-align: top;
-  color: var(--text);
-}
-
-.productCell {
-  min-width: 200px;
-}
-
-.productInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.productName {
-  font-weight: 600;
-  color: var(--text);
-  font-size: 15px;
-}
-
-.productId {
-  font-size: 12px;
-  color: var(--textSoft);
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-}
-
-.quantityCell {
-  text-align: center;
-}
-
-.quantityBadge {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--accent);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.priceCell {
-  text-align: right;
-}
-
-.priceInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-end;
-}
-
-.currentPrice {
-  font-weight: 600;
-  color: var(--text);
-}
-
-.discount {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.originalPriceCell {
-  text-align: right;
-}
-
-.originalPrice {
-  text-decoration: line-through;
-  color: var(--textSoft);
-  font-size: 14px;
-}
-
-.regularPrice {
-  color: var(--textSoft);
-  font-size: 14px;
-}
-
-.totalCell {
-  text-align: right;
-  color: var(--text);
-  font-size: 15px;
-}
-
-/* Timeline Card */
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.timelineItem {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: var(--bg);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.timelineIcon {
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
-  background: var(--bgSoft);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--border);
-}
-
-.timelineContent {
-  flex: 1;
-}
-
-.timelineLabel {
-  font-size: 14px;
-  color: var(--textSoft);
-  font-weight: 500;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.timelineValue {
-  font-size: 16px;
-  color: var(--text);
-  font-weight: 600;
-}
-
-/* Edit Card & Forms */
-.editCard {
-  grid-column: span 2;
-}
-
-.editForm {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.label {
-  font-weight: 600;
-  color: var(--text);
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.input,
-.select,
-.textarea {
-  padding: 12px 16px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background: var(--bg);
-  color: var(--text);
-}
-
-.input:focus,
-.select:focus,
-.textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.textarea {
-  resize: vertical;
-  min-height: 100px;
-  font-family: inherit;
-}
-
-.formActions {
-  display: flex;
-  gap: 16px;
-  padding-top: 16px;
-  border-top: 2px solid var(--border);
-}
-
-.updateBtn {
-  flex: 1;
-  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
-  color: white;
-  border: none;
-  padding: 16px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.updateBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.4);
-}
-
-.deleteForm {
-  display: contents;
-}
-
-.deleteBtn {
-  background: var(--danger);
-  color: white;
-  border: none;
-  padding: 16px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.deleteBtn:hover {
-  background: var(--dangerHover);
-  transform: translateY(-2px);
-}
-
-/* Standalone Delete Form Styles */
-.button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: var(--bgSoft);
-  color: var(--text);
-  border: 2px solid var(--border);
-}
-
-.button:hover {
-  transform: translateY(-2px);
-  border-color: var(--borderSoft);
-}
-
-.button.delete {
-  background: var(--danger);
-  color: white;
-  border-color: var(--danger);
-}
-
-.button.delete:hover {
-  background: var(--dangerHover);
-  border-color: var(--dangerHover);
-  box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.4);
-}
+/* Buttons */
+.button { padding:10px 18px; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; background:var(--bgSoft); color:var(--text); border:1px solid var(--border); }
+.button.delete { background:var(--danger); color:white; border:1px solid var(--danger); }
 
 /* Error Card */
-.errorCard {
-  background: var(--bgSoft);
-  border-radius: 16px;
-  padding: 48px;
-  text-align: center;
-  box-shadow: 0 4px 6px -1px var(--shadow);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-left: 4px solid var(--danger);
+.errorCard { background:var(--bgSoft); border-radius:12px; padding:24px; text-align:center; box-shadow:0 4px 6px -1px var(--shadow); border:1px solid rgba(239,68,68,0.18); border-left:4px solid var(--danger); }
+.errorCard h2 { color:var(--danger); margin-bottom:10px; font-size:18px; }
+.errorCard p { color:var(--textSoft); font-size:14px; margin:0; }
+
+/* Smaller view: stack everything, convert table to stacked cards for readability */
+@media (max-width: 620px) {
+  .contentGrid { grid-template-columns: 1fr; }
+  .itemsCard, .editCard, .pendingBalanceCard { grid-column: span 1; }
+  .summaryGrid { grid-template-columns: 1fr; }
+  .statsGrid { grid-template-columns: 1fr; }
+
+  /* Transform table into stacked rows (mobile-friendly)
+     We use nth-child labels so no JSX changes are required.
+  */
+  .itemsTable thead { display:none; }
+  .itemsTable { min-width: auto; }
+  .itemsTable, .itemsTable tbody, .itemsTable tr, .itemsTable td { display:block; width:100%; }
+  .itemRow { margin-bottom: 12px; border:1px solid var(--border); padding:12px; border-radius:10px; }
+  .itemsTable td { padding:8px 6px; text-align:left; }
+
+  /* Labels for each cell using nth-child — keeps original JSX intact */
+  .itemRow td:nth-child(1)::before { content: "Product:"; display:inline-block; width:110px; font-weight:700; color:var(--textSoft); }
+  .itemRow td:nth-child(2)::before { content: "Quantity:"; display:inline-block; width:110px; font-weight:700; color:var(--textSoft); }
+  .itemRow td:nth-child(3)::before { content: "Unit Price:"; display:inline-block; width:110px; font-weight:700; color:var(--textSoft); }
+  .itemRow td:nth-child(4)::before { content: "Original:"; display:inline-block; width:110px; font-weight:700; color:var(--textSoft); }
+  .itemRow td:nth-child(5)::before { content: "Line Total:"; display:inline-block; width:110px; font-weight:700; color:var(--textSoft); }
 }
 
-.errorCard h2 {
-  color: var(--danger);
-  margin-bottom: 16px;
-  font-size: 24px;
+/* Medium & Large viewports: control column spans so key cards are wider */
+@media (min-width: 920px) {
+  .contentGrid { grid-template-columns: repeat(2, 1fr); }
+  .itemsCard, .editCard, .pendingBalanceCard { grid-column: span 2; }
+  .summaryGrid { grid-template-columns: repeat(2, 1fr); }
+  .statsGrid { grid-template-columns: repeat(3, 1fr); }
+  .itemsTable { min-width: 700px; }
 }
 
-.errorCard p {
-  color: var(--textSoft);
-  font-size: 16px;
-  margin: 0;
+@media (min-width: 1400px) {
+  /* on ultra-wide screens allow 3-column layout, while keeping wider cards spanning 2 columns */
+  .contentGrid { grid-template-columns: repeat(3, 1fr); }
+  .itemsCard, .editCard { grid-column: span 2; }
 }
 
-/* EditTransactionForm specific styles */
-.editTransactionForm {
-  background: var(--bgSoft);
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 4px 6px -1px var(--shadow);
-  border: 1px solid var(--border);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.editTransactionForm h2 {
-  margin: 0 0 24px 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 12px;
-}
-
-/* DeleteSaleForm specific styles */
-.deleteSaleForm {
-  display: inline-block;
-}
-
-.deleteSaleForm .button.delete {
-  background: var(--danger);
-  color: white;
-  border: 2px solid var(--danger);
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.deleteSaleForm .button.delete:hover {
-  background: var(--dangerHover);
-  border-color: var(--dangerHover);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px -2px rgba(239, 68, 68, 0.5);
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .contentGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .itemsCard,
-  .editCard,
-  .pendingBalanceCard {
-    grid-column: span 1;
-  }
-  
-  .summaryGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 16px;
-  }
-  
-  .header {
-    flex-direction: column;
-    gap: 16px;
-    padding: 24px;
-  }
-  
-  .summaryCard,
-  .customerCard,
-  .financialCard,
-  .statsCard,
-  .itemsCard,
-  .timelineCard,
-  .editCard,
-  .pendingBalanceCard {
-    padding: 24px;
-  }
-  
-  .customerInfo {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .formActions {
-    flex-direction: column;
-  }
-  
-  .tableContainer {
-    font-size: 14px;
-  }
-  
-  .itemsTable th,
-  .itemsTable td {
-    padding: 12px 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .headerContent h1 {
-    font-size: 24px;
-  }
-  
-  .summaryValue {
-    font-size: 20px;
-  }
-  
-  .statValue {
-    font-size: 20px;
-  }
-  
-  .itemsTable {
-    font-size: 12px;
-  }
-  
-  .productName {
-    font-size: 14px;
-  }
-}
-
-/* Print Styles */
+/* Print tweaks (keep similar to original but smaller paddings) */
 @media print {
-  .editCard,
-  .editTransactionForm,
-  .deleteSaleForm {
-    display: none;
-  }
-  
-  .container {
-    background: white;
-    padding: 0;
-  }
-  
-  .summaryCard,
-  .customerCard,
-  .financialCard,
-  .statsCard,
-  .itemsCard,
-  .timelineCard,
-  .pendingBalanceCard {
-    box-shadow: none;
-    border: 1px solid #ccc;
-    break-inside: avoid;
-    background: white;
-    color: black;
-  }
+  .editCard, .editTransactionForm, .deleteSaleForm { display:none; }
+  .container { background:white; padding:0; }
+  .summaryCard, .customerCard, .financialCard, .statsCard, .itemsCard, .timelineCard, .pendingBalanceCard { box-shadow:none; border:1px solid #ccc; break-inside:avoid; background:white; color:black; }
 }
