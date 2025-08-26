@@ -60,7 +60,7 @@ const SingleTransactionPage = async (props) => {
   };
 
   const formatCurrency = (amount) => {
-    return `$${Number(amount).toFixed(2)}`;
+    return `Rs${Number(amount).toFixed(2)}`;
   };
 
   const getPaymentMethodDisplay = (method) => {
