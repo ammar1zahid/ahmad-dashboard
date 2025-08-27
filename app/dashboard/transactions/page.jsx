@@ -28,12 +28,37 @@ function getStatusClass(status) {
 async function TransactionsPage({ searchParams }) {
   try {
     const params = await searchParams;
+    // Basic search/paging params
     const q = params?.q || "";
     const page = Number(params?.page) || 1;
     const limit = Number(params?.limit) || 10;
 
+    // New filter params (read from query string)
+    const status = params?.status || ""; // e.g. completed, pending
+    const paymentMethod = params?.paymentMethod || "";
+    const sellerId = params?.sellerId || "";
+    const dateFrom = params?.dateFrom || ""; // ISO date or yyyy-mm-dd
+    const dateTo = params?.dateTo || "";
+    const minAmount = params?.minAmount || "";
+    const maxAmount = params?.maxAmount || "";
+    const sortBy = params?.sortBy || "createdAt"; // createdAt | amountPaid | total
+    const sortOrder = params?.sortOrder || "desc"; // asc | desc
+
     const { count = 0, sales = [] } =
-      (await fetchSales({ q, page, limit })) || {};
+      (await fetchSales({
+        q,
+        page,
+        limit,
+        sellerId: sellerId || null,
+        status: status || null,
+        paymentMethod: paymentMethod || null,
+        dateFrom: dateFrom || null,
+        dateTo: dateTo || null,
+        minAmount: minAmount ? Number(minAmount) : null,
+        maxAmount: maxAmount ? Number(maxAmount) : null,
+        sortBy,
+        sortOrder,
+      })) || {};
 
     return (
       <div className={styles.container}>
@@ -43,6 +68,203 @@ async function TransactionsPage({ searchParams }) {
             <button className={styles.addButton}>New Transaction</button>
           </Link>
         </div>
+
+        {/* Filters form — GET so it updates searchParams */}
+
+        <form method="get" className={styles.filtersForm}>
+          <div className={styles.filtersHeader}>
+            <h3 className={styles.filtersTitle}>Filter Transactions</h3>
+          </div>
+
+          <div className={styles.filtersContainer}>
+            {/* Search Input */}
+            {/* <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Search</label>
+              <div className={styles.searchContainer}>
+                <input
+                  name="q"
+                  defaultValue={q}
+                  placeholder="Search transactions (customer, payment, notes)..."
+                  className={`${styles.input} ${styles.searchInput}`}
+                />
+              </div>
+            </div> */}
+
+            {/* Status Filter */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Status</label>
+              <select
+                name="status"
+                defaultValue={status || ""}
+                className={styles.select}
+              >
+                <option value="">All statuses</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
+
+            {/* Payment Method */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Payment Method</label>
+              <input
+                name="paymentMethod"
+                defaultValue={paymentMethod}
+                placeholder="e.g., Credit Card, Cash"
+                className={styles.input}
+              />
+            </div>
+
+            {/* Seller ID */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Seller ID</label>
+              <input
+                name="sellerId"
+                defaultValue={sellerId}
+                placeholder="Enter seller ID"
+                className={styles.input}
+              />
+            </div>
+
+            {/* Date Range */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Date Range</label>
+              <div className={styles.dateRangeGroup}>
+                <input
+                  name="dateFrom"
+                  defaultValue={dateFrom}
+                  type="date"
+                  className={styles.input}
+                  title="From date"
+                />
+                <input
+                  name="dateTo"
+                  defaultValue={dateTo}
+                  type="date"
+                  className={styles.input}
+                  title="To date"
+                />
+              </div>
+            </div>
+
+            {/* Amount Range */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Amount Range</label>
+              <div className={styles.amountRangeGroup}>
+                <input
+                  name="minAmount"
+                  defaultValue={minAmount}
+                  placeholder="Min Rs"
+                  className={styles.input}
+                  type="number"
+                  step="0.01"
+                />
+                <input
+                  name="maxAmount"
+                  defaultValue={maxAmount}
+                  placeholder="Max Rs"
+                  className={styles.input}
+                  type="number"
+                  step="0.01"
+                />
+              </div>
+            </div>
+
+            {/* Sort Options */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Sort By</label>
+              <div className={styles.sortGroup}>
+                <select
+                  name="sortBy"
+                  defaultValue={sortBy}
+                  className={styles.select}
+                >
+                  <option value="createdAt">Date Created</option>
+                  <option value="amountPaid">Amount Paid</option>
+                  <option value="total">Total Amount</option>
+                </select>
+                <select
+                  name="sortOrder"
+                  defaultValue={sortOrder}
+                  className={styles.select}
+                >
+                  <option value="desc">↓ Desc</option>
+                  <option value="asc">↑ Asc</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results Per Page */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Per Page</label>
+              <select
+                name="limit"
+                defaultValue={String(limit)}
+                className={styles.select}
+              >
+                <option value="5">5 results</option>
+                <option value="10">10 results</option>
+                <option value="20">20 results</option>
+                <option value="50">50 results</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className={styles.filterActions}>
+            <button
+              type="submit"
+              className={`${styles.button} ${styles.applyButton}`}
+            >
+              Apply Filters
+            </button>
+            <Link href="/dashboard/transactions">
+              <button
+                type="button"
+                className={`${styles.button} ${styles.resetButton}`}
+              >
+                Clear All
+              </button>
+            </Link>
+          </div>
+
+          {/* Active Filters Display (Optional Enhancement) */}
+          {(q ||
+            status ||
+            paymentMethod ||
+            sellerId ||
+            dateFrom ||
+            dateTo ||
+            minAmount ||
+            maxAmount) && (
+            <div className={styles.activeFilters}>
+              {q && <span className={styles.filterTag}>Search: {q}</span>}
+              {status && (
+                <span className={styles.filterTag}>Status: {status}</span>
+              )}
+              {paymentMethod && (
+                <span className={styles.filterTag}>
+                  Payment: {paymentMethod}
+                </span>
+              )}
+              {sellerId && (
+                <span className={styles.filterTag}>Seller: {sellerId}</span>
+              )}
+              {dateFrom && (
+                <span className={styles.filterTag}>From: {dateFrom}</span>
+              )}
+              {dateTo && <span className={styles.filterTag}>To: {dateTo}</span>}
+              {minAmount && (
+                <span className={styles.filterTag}>Min: ${minAmount}</span>
+              )}
+              {maxAmount && (
+                <span className={styles.filterTag}>Max: ${maxAmount}</span>
+              )}
+            </div>
+          )}
+        </form>
 
         <table className={styles.table}>
           <thead>
@@ -74,7 +296,7 @@ async function TransactionsPage({ searchParams }) {
                 const itemsCount = Array.isArray(sale.items)
                   ? sale.items.length
                   : 0;
-                const status = sale.status || "completed";
+                const statusVal = sale.status || "completed";
 
                 return (
                   <tr key={id}>
@@ -89,7 +311,7 @@ async function TransactionsPage({ searchParams }) {
                     </td>
                     <td>
                       <span className={styles.amount}>
-                        $
+                        Rs
                         {sale.amountPaid?.toFixed
                           ? sale.amountPaid.toFixed(2)
                           : Number(sale.amountPaid || 0).toFixed(2)}
@@ -98,9 +320,11 @@ async function TransactionsPage({ searchParams }) {
                     <td>{(sale.paymentMethod || "").toString()}</td>
                     <td>
                       <span
-                        className={`${styles.status} ${getStatusClass(status)}`}
+                        className={`${styles.status} ${getStatusClass(
+                          statusVal
+                        )}`}
                       >
-                        {status}
+                        {statusVal}
                       </span>
                     </td>
                     <td>{created}</td>

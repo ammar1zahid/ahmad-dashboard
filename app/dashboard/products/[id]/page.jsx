@@ -25,22 +25,25 @@ const SingleProductPage = async (props) => {
   const itemPrice = product.itemPrice ?? 0;
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-PK", {
+      style: "currency",
+      currency: "PKR",
     }).format(amount || 0);
   };
 
   const getStockStatus = (totalItems, itemSalePrice) => {
-    if (!totalItems || totalItems === 0) return { status: 'out-of-stock', text: 'Out of Stock' };
-    if (totalItems <= 5) return { status: 'low-stock', text: 'Low Stock' };
-    if (!itemSalePrice) return { status: 'no-price', text: 'No Sale Price' };
-    return { status: 'in-stock', text: 'In Stock' };
+    if (!totalItems || totalItems === 0)
+      return { status: "out-of-stock", text: "Out of Stock" };
+    if (totalItems <= 5) return { status: "low-stock", text: "Low Stock" };
+    if (!itemSalePrice) return { status: "no-price", text: "No Sale Price" };
+    return { status: "in-stock", text: "In Stock" };
   };
 
   const stockInfo = getStockStatus(totalItems, itemSalePrice);
-  const profitPerItem = itemSalePrice && itemPrice ? (itemSalePrice - itemPrice) : 0;
-  const totalPotentialRevenue = itemSalePrice && totalItems ? (itemSalePrice * totalItems) : 0;
+  const profitPerItem =
+    itemSalePrice && itemPrice ? itemSalePrice - itemPrice : 0;
+  const totalPotentialRevenue =
+    itemSalePrice && totalItems ? itemSalePrice * totalItems : 0;
   const totalPotentialProfit = profitPerItem * totalItems;
 
   return (
@@ -77,8 +80,12 @@ const SingleProductPage = async (props) => {
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h3>Product Overview</h3>
-              <span className={`${styles.categoryBadge} ${styles[category] || styles.general}`}>
-                {category || 'General'}
+              <span
+                className={`${styles.categoryBadge} ${
+                  styles[category] || styles.general
+                }`}
+              >
+                {category || "General"}
               </span>
             </div>
             <div className={styles.cardContent}>
@@ -102,7 +109,9 @@ const SingleProductPage = async (props) => {
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Created:</span>
                   <span className={styles.detailValue}>
-                    {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}
+                    {product.createdAt
+                      ? new Date(product.createdAt).toLocaleDateString()
+                      : "N/A"}
                   </span>
                 </div>
               </div>
@@ -118,31 +127,55 @@ const SingleProductPage = async (props) => {
               <div className={styles.financialGrid}>
                 <div className={styles.financialItem}>
                   <span className={styles.financialLabel}>Purchase Price</span>
-                  <span className={styles.financialValue}>{formatCurrency(purchasePrice)}</span>
+                  <span className={styles.financialValue}>
+                    {formatCurrency(purchasePrice)}
+                  </span>
                 </div>
                 <div className={styles.financialItem}>
                   <span className={styles.financialLabel}>Cost Per Item</span>
-                  <span className={styles.financialValue}>{formatCurrency(itemPrice)}</span>
+                  <span className={styles.financialValue}>
+                    {formatCurrency(itemPrice)}
+                  </span>
                 </div>
                 {itemSalePrice && (
                   <>
                     <div className={styles.financialItem}>
                       <span className={styles.financialLabel}>Sale Price</span>
-                      <span className={styles.financialValue}>{formatCurrency(itemSalePrice)}</span>
+                      <span className={styles.financialValue}>
+                        {formatCurrency(itemSalePrice)}
+                      </span>
                     </div>
                     <div className={styles.financialItem}>
-                      <span className={styles.financialLabel}>Profit Per Item</span>
-                      <span className={`${styles.financialValue} ${profitPerItem >= 0 ? styles.profit : styles.loss}`}>
+                      <span className={styles.financialLabel}>
+                        Profit Per Item
+                      </span>
+                      <span
+                        className={`${styles.financialValue} ${
+                          profitPerItem >= 0 ? styles.profit : styles.loss
+                        }`}
+                      >
                         {formatCurrency(profitPerItem)}
                       </span>
                     </div>
                     <div className={styles.financialItem}>
-                      <span className={styles.financialLabel}>Total Revenue Potential</span>
-                      <span className={styles.financialValue}>{formatCurrency(totalPotentialRevenue)}</span>
+                      <span className={styles.financialLabel}>
+                        Total Revenue Potential
+                      </span>
+                      <span className={styles.financialValue}>
+                        {formatCurrency(totalPotentialRevenue)}
+                      </span>
                     </div>
                     <div className={styles.financialItem}>
-                      <span className={styles.financialLabel}>Total Profit Potential</span>
-                      <span className={`${styles.financialValue} ${totalPotentialProfit >= 0 ? styles.profit : styles.loss}`}>
+                      <span className={styles.financialLabel}>
+                        Total Profit Potential
+                      </span>
+                      <span
+                        className={`${styles.financialValue} ${
+                          totalPotentialProfit >= 0
+                            ? styles.profit
+                            : styles.loss
+                        }`}
+                      >
                         {formatCurrency(totalPotentialProfit)}
                       </span>
                     </div>
@@ -164,11 +197,15 @@ const SingleProductPage = async (props) => {
                   <span className={styles.inventoryLabel}>Units</span>
                 </div>
                 <div className={styles.inventoryItem}>
-                  <span className={styles.inventoryNumber}>{itemsPerUnit || 0}</span>
+                  <span className={styles.inventoryNumber}>
+                    {itemsPerUnit || 0}
+                  </span>
                   <span className={styles.inventoryLabel}>Items/Unit</span>
                 </div>
                 <div className={styles.inventoryItem}>
-                  <span className={`${styles.inventoryNumber} ${styles.total}`}>{totalItems || 0}</span>
+                  <span className={`${styles.inventoryNumber} ${styles.total}`}>
+                    {totalItems || 0}
+                  </span>
                   <span className={styles.inventoryLabel}>Total Items</span>
                 </div>
               </div>
@@ -191,12 +228,24 @@ const SingleProductPage = async (props) => {
                   <h4>Basic Information</h4>
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label htmlFor="title">Product Title <span className={styles.required}>*</span></label>
-                      <input type="text" id="title" name="title" defaultValue={title} required />
+                      <label htmlFor="title">
+                        Product Title <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        defaultValue={title}
+                        required
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label htmlFor="category">Category</label>
-                      <select name="category" id="category" defaultValue={category || "general"}>
+                      <select
+                        name="category"
+                        id="category"
+                        defaultValue={category || "general"}
+                      >
                         <option value="general">General</option>
                         <option value="kitchen">Kitchen</option>
                         <option value="phone">Phone</option>
@@ -208,17 +257,35 @@ const SingleProductPage = async (props) => {
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label htmlFor="color">Color</label>
-                      <input type="text" id="color" name="color" defaultValue={color || ""} />
+                      <input
+                        type="text"
+                        id="color"
+                        name="color"
+                        defaultValue={color || ""}
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label htmlFor="size">Size</label>
-                      <input type="text" id="size" name="size" defaultValue={size || ""} />
+                      <input
+                        type="text"
+                        id="size"
+                        name="size"
+                        defaultValue={size || ""}
+                      />
                     </div>
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label htmlFor="desc">Description <span className={styles.required}>*</span></label>
-                    <textarea name="desc" id="desc" rows="4" defaultValue={desc || ""} required />
+                    <label htmlFor="desc">
+                      Description <span className={styles.required}>*</span>
+                    </label>
+                    <textarea
+                      name="desc"
+                      id="desc"
+                      rows="4"
+                      defaultValue={desc || ""}
+                      required
+                    />
                   </div>
                 </div>
 
@@ -226,7 +293,10 @@ const SingleProductPage = async (props) => {
                   <h4>Purchase & Inventory</h4>
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label htmlFor="purchasePrice">Purchase Price (Total) <span className={styles.required}>*</span></label>
+                      <label htmlFor="purchasePrice">
+                        Purchase Price (Total){" "}
+                        <span className={styles.required}>*</span>
+                      </label>
                       <input
                         type="number"
                         id="purchasePrice"
@@ -238,7 +308,9 @@ const SingleProductPage = async (props) => {
                       />
                     </div>
                     <div className={styles.formGroup}>
-                      <label htmlFor="units">Units <span className={styles.required}>*</span></label>
+                      <label htmlFor="units">
+                        Units <span className={styles.required}>*</span>
+                      </label>
                       <input
                         type="number"
                         id="units"
@@ -253,7 +325,10 @@ const SingleProductPage = async (props) => {
 
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label htmlFor="itemsPerUnit">Items Per Unit <span className={styles.required}>*</span></label>
+                      <label htmlFor="itemsPerUnit">
+                        Items Per Unit{" "}
+                        <span className={styles.required}>*</span>
+                      </label>
                       <input
                         type="number"
                         id="itemsPerUnit"
@@ -294,7 +369,10 @@ const SingleProductPage = async (props) => {
                 </div>
 
                 <div className={styles.formActions}>
-                  <Link href="/dashboard/products" className={styles.cancelButton}>
+                  <Link
+                    href="/dashboard/products"
+                    className={styles.cancelButton}
+                  >
                     Cancel
                   </Link>
                   <button type="submit" className={styles.updateButton}>

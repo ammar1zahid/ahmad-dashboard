@@ -6,7 +6,7 @@ function formatDate(dateString) {
 }
 
 function formatCurrency(amount) {
-  return `$${amount.toFixed(2)}`;
+  return `Rs${amount.toFixed(2)}`;
 }
 
 export default async function CustomerSalesPage({ params, searchParams }) {
