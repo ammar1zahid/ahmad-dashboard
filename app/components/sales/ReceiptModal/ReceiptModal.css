@@ -1,4 +1,5 @@
-.receipt-modal-overlay {
+/* Pakistani Bill Pad Modal Styles */
+.bill-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,17 +13,17 @@
   padding: 1rem;
 }
 
-.receipt-modal {
+.bill-modal {
   background-color: var(--bgSoft);
   border-radius: 12px;
   width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
+  max-width: 600px;
+  max-height: 95vh;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
 }
 
-.receipt-modal-header {
+.bill-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,7 +31,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.receipt-modal-title {
+.bill-modal-title {
   display: flex;
   align-items: center;
   font-size: 1.25rem;
@@ -39,16 +40,16 @@
   margin: 0;
 }
 
-.receipt-modal-icon {
+.bill-modal-icon {
   margin-right: 0.5rem;
 }
 
-.receipt-modal-actions {
+.bill-modal-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.receipt-modal-btn {
+.bill-modal-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -60,218 +61,350 @@
   transition: all 0.2s ease;
 }
 
-.receipt-modal-btn-print {
-  background-color: #3b82f6;
+.bill-modal-btn-print {
+  background-color: #16a34a;
   color: white;
 }
 
-.receipt-modal-btn-print:hover {
-  background-color: #2563eb;
+.bill-modal-btn-print:hover {
+  background-color: #15803d;
   transform: translateY(-1px);
 }
 
-.receipt-modal-btn-close {
+.bill-modal-btn-close {
   background-color: var(--bg);
   color: var(--textSoft);
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.receipt-modal-btn-close:hover {
+.bill-modal-btn-close:hover {
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--text);
 }
 
-.receipt-modal-content {
+.bill-modal-content {
   padding: 1.5rem;
-  max-height: calc(90vh - 80px);
+  max-height: calc(95vh - 80px);
   overflow-y: auto;
 }
 
-.receipt-paper {
-  background-color: white;
-  color: #000;
-  padding: 2rem;
-  border-radius: 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  line-height: 1.4;
+/* Bill Paper - Main Container */
+.bill-paper {
+  background-color: #ffffff;
+  color: #000000;
+  padding: 20px;
+  border: 2px solid #000;
+  border-radius: 0;
+  font-family: 'Arial', 'Jameel Noori Nastaleeq', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 600px;
 }
 
-.receipt-header {
+/* Header Section with Logo */
+.bill-header {
+  margin-bottom: 15px;
+}
+
+.bill-logo-section {
   text-align: center;
-  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-.receipt-business-name {
-  font-size: 1.5rem;
+.bill-header-image {
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+}
+
+.bill-header-fallback {
+  text-align: center;
+}
+
+.bill-business-name {
+  font-size: 18px;
   font-weight: bold;
-  margin: 0 0 0.5rem 0;
+  margin: 5px 0;
+  color: #000;
   text-transform: uppercase;
 }
 
-.receipt-business-info {
-  margin: 0.25rem 0;
-  font-size: 0.75rem;
+.bill-business-name-english {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 3px 0;
+  color: #333;
 }
 
-.receipt-divider {
-  border-top: 2px dashed #000;
-  margin: 1rem 0;
+.bill-business-info {
+  font-size: 12px;
+  margin: 2px 0;
+  color: #000;
 }
 
-.receipt-divider-small {
-  border-top: 1px dashed #000;
-  margin: 0.5rem 0;
+/* Bill Title Section */
+.bill-title-section {
+  margin-bottom: 20px;
 }
 
-.receipt-transaction-info {
-  margin-bottom: 1rem;
+.bill-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: underline;
+  margin: 10px 0;
+  text-transform: uppercase;
 }
 
-.receipt-info-row {
+.bill-number-date {
   display: flex;
   justify-content: space-between;
-  margin: 0.5rem 0;
+  border: 1px solid #000;
+  padding: 8px;
+  background-color: #f9f9f9;
 }
 
-.receipt-info-label {
+.bill-info-item {
+  display: flex;
+  gap: 10px;
+}
+
+.bill-label {
   font-weight: bold;
+  min-width: 70px;
 }
 
-.receipt-info-value {
-  text-align: right;
-}
-
-.receipt-payment-method {
-  text-transform: capitalize;
-}
-
-.receipt-items {
-  margin: 1rem 0;
-}
-
-.receipt-items-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 0.5rem;
-  font-weight: bold;
-  padding: 0.5rem 0;
+.bill-value {
   border-bottom: 1px solid #000;
+  min-width: 100px;
+  padding-bottom: 2px;
 }
 
-.receipt-items-divider {
-  border-top: 1px solid #000;
-  margin: 0.5rem 0;
+/* Customer Section */
+.bill-customer-section {
+  margin: 15px 0;
+  border: 1px solid #000;
+  padding: 10px;
+  background-color: #f9f9f9;
 }
 
-.receipt-item {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px dotted #ccc;
+.bill-customer-row {
+  display: flex;
+  margin: 5px 0;
+  align-items: center;
 }
 
-.receipt-item:last-child {
-  border-bottom: none;
+.bill-customer-label {
+  font-weight: bold;
+  min-width: 180px;
+  font-size: 13px;
 }
 
-.receipt-item-name {
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.bill-customer-value {
+  border-bottom: 1px solid #000;
+  flex: 1;
+  padding: 2px 5px;
+  background-color: white;
 }
 
-.receipt-item-qty,
-.receipt-item-price,
-.receipt-item-total {
+/* Items Table */
+.bill-items-section {
+  margin: 20px 0;
+}
+
+.bill-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #000;
+  font-size: 13px;
+}
+
+.bill-table-header th {
+  background-color: #e0e0e0;
+  border: 1px solid #000;
+  padding: 8px 5px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.bill-th-sr { width: 8%; }
+.bill-th-description { width: 40%; }
+.bill-th-qty { width: 12%; }
+.bill-th-rate { width: 20%; }
+.bill-th-amount { width: 20%; }
+
+.bill-table-row td {
+  border: 1px solid #000;
+  padding: 6px 5px;
+  vertical-align: top;
+}
+
+.bill-td-sr {
+  text-align: center;
+  font-weight: bold;
+}
+
+.bill-td-description {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.bill-td-qty,
+.bill-td-rate,
+.bill-td-amount {
   text-align: right;
+  padding-right: 8px;
 }
 
-.receipt-totals {
-  margin: 1rem 0;
+/* Totals Section */
+.bill-totals-section {
+  margin: 20px 0;
+  border: 2px solid #000;
 }
 
-.receipt-total-row {
+.bill-totals-table {
+  background-color: #f9f9f9;
+  padding: 15px;
+}
+
+.bill-total-row {
   display: flex;
   justify-content: space-between;
-  margin: 0.5rem 0;
+  margin: 8px 0;
+  padding: 3px 0;
 }
 
-.receipt-total-label {
-  font-weight: 500;
+.bill-total-label {
+  font-weight: bold;
+  font-size: 14px;
 }
 
-.receipt-total-value {
+.bill-total-value {
+  font-weight: bold;
+  font-size: 14px;
+  min-width: 120px;
   text-align: right;
-  font-weight: bold;
+  border-bottom: 1px solid #000;
+  padding: 0 5px;
 }
 
-.receipt-grand-total {
-  font-size: 1.125rem;
-  font-weight: bold;
+.bill-grand-total {
   border-top: 2px solid #000;
   border-bottom: 2px solid #000;
-  padding: 0.75rem 0;
-  margin: 1rem 0;
+  background-color: #e0e0e0;
+  padding: 10px 0;
+  margin: 15px 0;
+  font-size: 16px;
 }
 
-.receipt-footer {
-  text-align: center;
-  margin: 1.5rem 0;
-}
-
-.receipt-footer-text {
-  margin: 0.5rem 0;
+.bill-grand-total .bill-total-label,
+.bill-grand-total .bill-total-value {
+  font-size: 16px;
   font-weight: bold;
 }
 
-.receipt-footer-contact {
-  margin-top: 1rem;
-  font-size: 0.75rem;
+/* Payment Section */
+.bill-payment-section {
+  margin: 15px 0;
+  border: 1px solid #000;
+  padding: 10px;
+  background-color: #f0f0f0;
 }
 
-.receipt-barcode {
-  text-align: center;
-  margin: 1.5rem 0;
-}
-
-.receipt-barcode-lines {
+.bill-payment-method {
   display: flex;
-  justify-content: center;
-  align-items: end;
-  gap: 2px;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  gap: 10px;
 }
 
-.receipt-barcode-line {
+.bill-payment-label {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.bill-payment-value {
+  font-weight: bold;
+  font-size: 14px;
+  border-bottom: 2px solid #000;
+  padding: 3px 8px;
+  background-color: white;
+}
+
+/* Footer Section */
+.bill-footer {
+  margin-top: 25px;
+  border-top: 1px solid #000;
+  padding-top: 15px;
+}
+
+.bill-footer-thanks {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.bill-thanks-english {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 5px 0;
+  color: #000;
+}
+
+.bill-thanks-urdu {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 5px 0;
+  color: #333;
+  direction: rtl;
+}
+
+.bill-footer-note {
+  text-align: center;
+  margin: 15px 0;
+  font-size: 11px;
+  font-style: italic;
+  color: #555;
+}
+
+.bill-footer-note p {
+  margin: 3px 0;
+}
+
+.bill-signature-section {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bill-signature {
+  text-align: center;
+  min-width: 200px;
+}
+
+.bill-signature-line {
+  height: 1px;
   background-color: #000;
-  width: 2px;
-  height: 30px;
+  margin: 20px 0 5px 0;
 }
 
-.receipt-barcode-line.thick {
-  width: 4px;
-  height: 35px;
-}
-
-.receipt-barcode-number {
-  font-size: 0.75rem;
+.bill-signature-label {
+  font-size: 12px;
+  font-weight: bold;
   margin: 0;
-  letter-spacing: 2px;
 }
 
 /* Print Styles */
 @media print {
-  .receipt-modal-overlay {
+  .bill-modal-overlay {
     background: white;
     position: static;
     padding: 0;
   }
   
-  .receipt-modal {
+  .bill-modal {
     background: white;
     box-shadow: none;
     max-width: none;
@@ -279,54 +412,158 @@
     border-radius: 0;
   }
   
-  .receipt-modal-header {
+  .bill-modal-header {
     display: none;
   }
   
-  .receipt-modal-content {
+  .bill-modal-content {
     padding: 0;
     max-height: none;
   }
   
-  .receipt-paper {
+  .bill-paper {
     box-shadow: none;
-    border-radius: 0;
-    padding: 1rem;
+    border: 1px solid #000;
+    padding: 15px;
+    font-size: 12px;
+  }
+
+  .bill-title {
+    font-size: 18px;
+  }
+
+  .bill-items-table {
+    font-size: 11px;
+  }
+
+  .bill-total-row {
+    font-size: 12px;
+  }
+
+  .bill-grand-total .bill-total-label,
+  .bill-grand-total .bill-total-value {
+    font-size: 14px;
   }
 }
 
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .receipt-modal {
+  .bill-modal {
     max-width: 95vw;
     margin: 0.5rem;
   }
   
-  .receipt-modal-header {
+  .bill-modal-header {
     padding: 1rem;
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
   
-  .receipt-modal-actions {
+  .bill-modal-actions {
     justify-content: center;
   }
   
-  .receipt-modal-content {
+  .bill-modal-content {
     padding: 1rem;
   }
   
-  .receipt-paper {
-    padding: 1.5rem;
+  .bill-paper {
+    padding: 15px;
+    font-size: 12px;
   }
-  
-  .receipt-items-header,
-  .receipt-item {
-    grid-template-columns: 1.5fr 0.5fr 0.75fr 0.75fr;
-    font-size: 0.75rem;
+
+  .bill-title {
+    font-size: 16px;
   }
-  
-  .receipt-business-name {
-    font-size: 1.25rem;
+
+  .bill-number-date {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bill-customer-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .bill-customer-label {
+    min-width: auto;
+  }
+
+  .bill-items-table {
+    font-size: 11px;
+  }
+
+  .bill-table-header th,
+  .bill-table-row td {
+    padding: 4px 3px;
+  }
+
+  .bill-th-sr { width: 10%; }
+  .bill-th-description { width: 35%; }
+  .bill-th-qty { width: 15%; }
+  .bill-th-rate { width: 20%; }
+  .bill-th-amount { width: 20%; }
+
+  .bill-total-row {
+    font-size: 12px;
+  }
+
+  .bill-payment-method {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .bill-signature-section {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .bill-paper {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .bill-title {
+    font-size: 14px;
+  }
+
+  .bill-items-table {
+    font-size: 10px;
+  }
+
+  .bill-table-header th,
+  .bill-table-row td {
+    padding: 3px 2px;
+  }
+}
+
+/* Fallback: when body has .print-only-receipt we hide everything except .bill-paper */
+@media print {
+  body.print-only-receipt * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  body.print-only-receipt .bill-paper,
+  body.print-only-receipt .bill-paper * {
+    display: block !important;
+    visibility: visible !important;
+  }
+  body.print-only-receipt .bill-paper {
+    position: static !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* also hide overlay / headers just in case */
+  body.print-only-receipt .bill-modal-overlay,
+  body.print-only-receipt .bill-modal-header {
+    display: none !important;
   }
 }
