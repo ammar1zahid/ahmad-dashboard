@@ -3,9 +3,6 @@
 import { usePathname } from "next/navigation";
 import styles from "./navbar.module.css";
 import {
-  MdNotifications,
-  MdOutlineChat,
-  MdPublic,
   MdMenu,
 } from "react-icons/md";
 
@@ -48,29 +45,29 @@ const Navbar = ({ onMenuToggle }) => {
 
         
         <div className={styles.icons}>
-          <button 
+          {/* <button 
             className={`${styles.iconButton} ${styles.hasNotification}`}
             aria-label="Messages"
             title="Messages"
           >
             <MdOutlineChat size={20} />
-          </button>
+          </button> */}
           
-          <button 
+          {/* <button 
             className={`${styles.iconButton} ${styles.hasNotification}`}
             aria-label="Notifications"
             title="Notifications"
           >
             <MdNotifications size={20} />
-          </button>
+          </button> */}
           
-          <button 
+          {/* <button 
             className={styles.iconButton}
             aria-label="Public view"
             title="Public View"
           >
             <MdPublic size={20} />
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
