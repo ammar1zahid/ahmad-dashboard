@@ -19,6 +19,11 @@ import "../../components/sales/sales.module.css";
  *   - createCustomerAction, updateCustomerAction: server actions
  *   - createSaleAction, updateSaleAction: server actions for sales
  */
+
+const TAX_RATE = Number(process.env.NEXT_PUBLIC_TAX_RATE ?? 0);
+const getTaxRate = () => (Number.isFinite(TAX_RATE) ? TAX_RATE : 0);
+
+
 const SalesClientPage = ({
   products: initialProducts = [],
   initialCustomers = [],
@@ -81,11 +86,13 @@ const SalesClientPage = ({
 
   // Basic calculations
   const calculateSubtotal = () => {
-    return cart.reduce((sum, item) => sum + (item.itemPrice * item.quantity), 0);
+    return cart.reduce((sum, item) => sum + (Number(item.itemPrice || 0) * Number(item.quantity || 0)), 0);
   };
 
-  const calculateTax = (subtotal) => {
-    return subtotal * 0.08; // 8% tax rate
+   const calculateTax = (subtotal) => {
+    const rate = getTaxRate();
+    // Return raw numeric tax (no formatting); UI components format the amount.
+    return +(subtotal * rate);
   };
 
   const calculateTotal = () => {

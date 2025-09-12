@@ -21,6 +21,8 @@ const formatDate = (ts) => {
 
 const ReceiptModal = ({ transaction = {}, onClose = () => {} }) => {
 
+const TAX_RATE = Number(process.env.NEXT_PUBLIC_TAX_RATE ?? 0);
+
   // Print only the .bill-paper by injecting it into a hidden iframe
 const handlePrint = () => {
   try {
@@ -131,7 +133,7 @@ const handlePrint = () => {
     normalizedItems.reduce((s, it) => s + it.lineTotal, 0);
 
   // Use provided tax if any, else compute 8%
-  const computedTax = safeNum(transaction.tax) || +(computedSubtotal * 0.08).toFixed(2);
+  const computedTax = safeNum(transaction.tax) || +(computedSubtotal * (Number.isFinite(TAX_RATE) ? TAX_RATE : 0)).toFixed(2);
 
   const computedTotal = safeNum(transaction.total) || +(computedSubtotal + computedTax).toFixed(2);
 
@@ -278,7 +280,7 @@ const handlePrint = () => {
                   <span className="bill-total-value">{formatPKR(computedSubtotal)}</span>
                 </div>
                 <div className="bill-total-row">
-                  <span className="bill-total-label">Tax (8%):</span>
+                  <span className="bill-total-label">Tax :</span>
                   <span className="bill-total-value">{formatPKR(computedTax)}</span>
                 </div>
                 <div className="bill-total-row bill-grand-total">

@@ -21,6 +21,11 @@ const CartSection = ({
   const [amountPaid, setAmountPaid] = useState('');
   // Track sale prices for each cart item
   const [salePrices, setSalePrices] = useState({});
+  const TAX_RATE = Number(process.env.NEXT_PUBLIC_TAX_RATE ?? 0);
+  const TAX_RATE_SAFE = Number.isFinite(TAX_RATE) ? TAX_RATE : 0;
+
+  // friendly tax label for UI: "8%" or "0.5%" etc.
+  const taxPercentLabel = `${+(TAX_RATE_SAFE * 100).toFixed(2).replace(/\.00$/, '')}%`;
 
   // Update sale price for an item
   const updateSalePrice = (itemId, salePrice) => {
@@ -52,7 +57,9 @@ const CartSection = ({
   };
 
   const calculateTaxWithSalePrices = (subtotal) => {
-    return subtotal * 0.08; // 8% tax rate
+    // tax rate is a decimal (e.g. 0.08 for 8%). fallback to 0 if invalid.
+    const rate = TAX_RATE_SAFE;
+    return +(subtotal * rate);
   };
 
   const calculateTotalWithSalePrices = () => {
@@ -116,7 +123,7 @@ const CartSection = ({
     }
 
     const subtotalLocal = cartWithSalePrices.reduce((sum, item) => sum + (Number(item.salePrice || 0) * item.quantity), 0);
-    const taxLocal = subtotalLocal * 0.08;
+    const taxLocal = +(subtotalLocal * TAX_RATE_SAFE);
     const totalLocal = subtotalLocal + taxLocal;
     const paidLocal = parseFloat(amountPaid) || 0;
 
@@ -304,7 +311,7 @@ const CartSection = ({
               <span>{formatPKR(subtotal)}</span>
             </div>
             <div className="cart-summary-row">
-              <span>Tax (8%):</span>
+              <span>Tax ({taxPercentLabel}):</span>
               <span>{formatPKR(tax)}</span>
             </div>
             <div className="cart-summary-row cart-total-row">
